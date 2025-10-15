@@ -24,12 +24,36 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch products from API - temporarily disabled for testing
+  // Fetch products from API
   useEffect(() => {
-    // Mock products for testing
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const response = await fetch('/api/products?first=50')
+        const data = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch products')
+        }
+        
+        // Transform Shopify products to include selection state
+        const productsWithSelection = data.edges.map((edge: { node: ShopifyProduct }) => ({
+          ...edge.node,
+          selected: false,
+        }))
+        
+        setProducts(productsWithSelection)
+      } catch (err) {
+        console.error('Error fetching products:', err)
+        setError(err instanceof Error ? err.message : 'Failed to fetch products')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProducts()
   }, [])
 
   // Filter products based on search query
@@ -76,18 +100,7 @@ export default function ProductsPage() {
 
   // Temporarily disabled authentication for testing
 
-  // Show loading products
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading products...</p>
-        </div>
-      </div>
-    )
-  }
-
+  // Show error state
   if (error) {
     return (
       <div className="space-y-6">
@@ -113,6 +126,18 @@ export default function ProductsPage() {
             </p>
           </CardContent>
         </Card>
+      </div>
+    )
+  }
+
+  // Show loading products
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading products...</p>
+        </div>
       </div>
     )
   }
