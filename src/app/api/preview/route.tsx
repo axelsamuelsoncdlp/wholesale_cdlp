@@ -33,12 +33,13 @@ export async function POST(request: NextRequest) {
       previewUrl: dataUrl,
       base64: base64,
       productCount: products.length,
-      config: config
+      config: config,
+      blobSize: arrayBuffer.byteLength
     })
   } catch (error) {
     console.error('Error generating PDF preview:', error)
     return NextResponse.json(
-      { error: 'Failed to generate PDF preview' },
+      { error: 'Failed to generate PDF preview', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

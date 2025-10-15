@@ -83,7 +83,13 @@ export default function LayoutPage() {
           <Link href="/app/preview">
             <Button variant="outline" className="gap-2">
               <Eye className="h-4 w-4" />
-              Preview
+              PDF Preview
+            </Button>
+          </Link>
+          <Link href="/app/preview-html">
+            <Button variant="outline" className="gap-2">
+              <Eye className="h-4 w-4" />
+              HTML Preview
             </Button>
           </Link>
           <Button 
@@ -242,7 +248,13 @@ export default function LayoutPage() {
           <Link href="/app/preview">
             <Button variant="outline" className="gap-2">
               <Eye className="h-4 w-4" />
-              Preview PDF
+              PDF Preview
+            </Button>
+          </Link>
+          <Link href="/app/preview-html">
+            <Button variant="outline" className="gap-2">
+              <Eye className="h-4 w-4" />
+              HTML Preview
             </Button>
           </Link>
           <Button 
