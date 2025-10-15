@@ -5,9 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Save, Eye, Settings } from 'lucide-react'
+import { Download, Save, Eye, Settings, AlertCircle, Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LayoutPage() {
+  const { isAuthenticated, isLoading: authLoading, error: authError } = useAuth()
+  
   const [config, setConfig] = useState({
     headerTitle: 'CDLP SS26 MENS',
     subheader: 'MENS',
@@ -32,6 +35,42 @@ export default function LayoutPage() {
         [field]: !prev.fieldToggles[field]
       }
     }))
+  }
+
+  // Show authentication loading
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Authenticating...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show authentication error
+  if (authError || !isAuthenticated) {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+          <CardHeader>
+            <CardTitle className="text-red-800 dark:text-red-200 flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              Authentication Required
+            </CardTitle>
+            <CardDescription className="text-red-700 dark:text-red-300">
+              {authError || 'You must be logged in to Shopify to access this page.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Please access this app through your Shopify Admin panel.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

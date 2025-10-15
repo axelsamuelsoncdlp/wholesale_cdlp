@@ -5,15 +5,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Search, ShoppingCart, ArrowRight, X, Loader2, Package } from 'lucide-react'
+import { Search, ShoppingCart, ArrowRight, X, Loader2, Package, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { ShopifyProduct } from '@/lib/shopify'
+import { useAuth } from '@/contexts/AuthContext'
+import { useAuthenticatedFetch } from '@/lib/apiClient'
 
 interface ProductWithSelection extends ShopifyProduct {
   selected: boolean
 }
 
 export default function ProductsPage() {
+  const { isAuthenticated, isLoading: authLoading, error: authError } = useAuth()
+  const { authenticatedFetch } = useAuthenticatedFetch()
+  
   const [products, setProducts] = useState<ProductWithSelection[]>([])
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,14 +28,13 @@ export default function ProductsPage() {
   // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!isAuthenticated || authLoading) return
+      
       try {
         setIsLoading(true)
-        const response = await fetch('/api/products')
+        setError(null)
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch products')
-        }
-        
+        const response = await authenticatedFetch('/api/products')
         const data = await response.json()
         
         // Transform Shopify products to include selection state
@@ -49,7 +53,7 @@ export default function ProductsPage() {
     }
 
     fetchProducts()
-  }, [])
+  }, [isAuthenticated, authLoading, authenticatedFetch])
 
   // Filter products based on search query
   const filteredProducts = products.filter(product =>
@@ -93,6 +97,50 @@ export default function ProductsPage() {
     setSelectedProducts([])
   }
 
+  // Show authentication loading
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Authenticating...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show authentication error
+  if (authError || !isAuthenticated) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-light tracking-tight">Product Selection</h1>
+          <p className="text-muted-foreground mt-2">
+            Choose products for your linesheet
+          </p>
+        </div>
+
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+          <CardHeader>
+            <CardTitle className="text-red-800 dark:text-red-200 flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              Authentication Required
+            </CardTitle>
+            <CardDescription className="text-red-700 dark:text-red-300">
+              {authError || 'You must be logged in to Shopify to access this page.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Please access this app through your Shopify Admin panel.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show loading products
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
