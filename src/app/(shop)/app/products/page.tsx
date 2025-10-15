@@ -23,6 +23,9 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hasNextPage, setHasNextPage] = useState(false)
+  const [endCursor, setEndCursor] = useState<string | null>(null)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Fetch products from API
   useEffect(() => {
@@ -45,6 +48,8 @@ export default function ProductsPage() {
         }))
         
         setProducts(productsWithSelection)
+        setHasNextPage(data.pageInfo.hasNextPage)
+        setEndCursor(data.pageInfo.endCursor)
       } catch (err) {
         console.error('Error fetching products:', err)
         setError(err instanceof Error ? err.message : 'Failed to fetch products')
@@ -55,6 +60,37 @@ export default function ProductsPage() {
 
     fetchProducts()
   }, [])
+
+  // Load more products function
+  const loadMoreProducts = async () => {
+    if (!hasNextPage || !endCursor || isLoadingMore) return
+
+    try {
+      setIsLoadingMore(true)
+      
+      const response = await fetch(`/api/products?first=50&after=${endCursor}`)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch more products')
+      }
+      
+      // Transform new products and append to existing ones
+      const newProductsWithSelection = data.edges.map((edge: { node: ShopifyProduct }) => ({
+        ...edge.node,
+        selected: false,
+      }))
+      
+      setProducts(prev => [...prev, ...newProductsWithSelection])
+      setHasNextPage(data.pageInfo.hasNextPage)
+      setEndCursor(data.pageInfo.endCursor)
+    } catch (err) {
+      console.error('Error loading more products:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load more products')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   // Filter products based on search query
   const filteredProducts = products.filter(product =>
@@ -282,6 +318,36 @@ export default function ProductsPage() {
           ))}
         </div>
       )}
+
+      {/* Load More Button */}
+      {hasNextPage && (
+        <div className="flex justify-center mt-8">
+          <Button 
+            onClick={loadMoreProducts} 
+            disabled={isLoadingMore}
+            variant="outline"
+            className="gap-2"
+          >
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                Load More Products
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* Products Count */}
+      <div className="text-center text-sm text-muted-foreground mt-4">
+        Showing {products.length} products
+        {hasNextPage && ' (more available)'}
+      </div>
 
       {/* Selected Products Summary */}
       {selectedProducts.length > 0 && (
