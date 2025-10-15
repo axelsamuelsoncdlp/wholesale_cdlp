@@ -132,7 +132,7 @@ export function isEmbeddedApp(): boolean {
 }
 
 /**
- * Generate Shopify app installation URL
+ * Generate Shopify app installation URL (for Custom App)
  */
 export function getShopifyInstallUrl(shop: string): string {
   const clientId = process.env.SHOPIFY_API_KEY!
