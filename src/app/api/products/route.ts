@@ -61,11 +61,21 @@ export async function GET(request: NextRequest) {
     })
 
     // Fetch products
+    console.log('About to fetch products from Shopify...')
     const products = await client.getProducts(first, after)
+    console.log('Successfully fetched products:', { 
+      productCount: products.edges.length,
+      hasNextPage: products.pageInfo.hasNextPage 
+    })
 
     return NextResponse.json(products)
   } catch (error) {
     console.error('Error fetching products:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    })
     
     logSecurityEvent({
       event: 'products_api_error',
@@ -75,7 +85,10 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { 
+        error: 'Failed to fetch products',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }

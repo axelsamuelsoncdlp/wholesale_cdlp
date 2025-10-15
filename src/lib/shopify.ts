@@ -182,6 +182,9 @@ export class ShopifyClient {
   }
 
   async getProducts(first: number = 50, after?: string) {
+    console.log('ShopifyClient.getProducts called with:', { first, after, shop: this.shop })
+    console.log('API URL:', this.getApiUrl())
+    
     const response = await this.graphql<{
       products: {
         edges: Array<{
@@ -194,7 +197,14 @@ export class ShopifyClient {
       }
     }>(GET_PRODUCTS_QUERY, { first, after })
 
+    console.log('GraphQL response:', { 
+      hasData: !!response.data,
+      hasErrors: !!response.errors,
+      errors: response.errors 
+    })
+
     if (response.errors) {
+      console.error('GraphQL errors:', response.errors)
       throw new Error(`GraphQL errors: ${response.errors.map(e => e.message).join(', ')}`)
     }
 
