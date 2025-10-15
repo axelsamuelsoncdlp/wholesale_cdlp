@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Search, ShoppingCart, ArrowRight, X, Loader2, Package } from 'lucide-react'
 import Link from 'next/link'
 import { ShopifyProduct } from '@/lib/shopify'
+import { useLinesheet } from '@/contexts/LinesheetContext'
 // import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 // import { useAuthenticatedFetch } from '@/lib/apiClient' // Temporarily disabled for testing
 
@@ -18,8 +19,15 @@ interface ProductWithSelection extends ShopifyProduct {
 export default function ProductsPage() {
   // Temporarily disabled authentication for testing
   
-  const [products, setProducts] = useState<ProductWithSelection[]>([])
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const { 
+    selectedProducts, 
+    addSelectedProduct, 
+    removeSelectedProduct, 
+    clearSelectedProducts, 
+    isProductSelected 
+  } = useLinesheet()
+  
+  const [products, setProducts] = useState<ShopifyProduct[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -41,13 +49,10 @@ export default function ProductsPage() {
           throw new Error(data.error || 'Failed to fetch products')
         }
         
-        // Transform Shopify products to include selection state
-        const productsWithSelection = data.edges.map((edge: { node: ShopifyProduct }) => ({
-          ...edge.node,
-          selected: false,
-        }))
+        // Transform Shopify products
+        const productsData = data.edges.map((edge: { node: ShopifyProduct }) => edge.node)
         
-        setProducts(productsWithSelection)
+        setProducts(productsData)
         setHasNextPage(data.pageInfo.hasNextPage)
         setEndCursor(data.pageInfo.endCursor)
       } catch (err) {
@@ -75,13 +80,10 @@ export default function ProductsPage() {
         throw new Error(data.error || 'Failed to fetch more products')
       }
       
-      // Transform new products and append to existing ones
-      const newProductsWithSelection = data.edges.map((edge: { node: ShopifyProduct }) => ({
-        ...edge.node,
-        selected: false,
-      }))
-      
-      setProducts(prev => [...prev, ...newProductsWithSelection])
+          // Transform new products and append to existing ones
+          const newProductsData = data.edges.map((edge: { node: ShopifyProduct }) => edge.node)
+          
+          setProducts(prev => [...prev, ...newProductsData])
       setHasNextPage(data.pageInfo.hasNextPage)
       setEndCursor(data.pageInfo.endCursor)
     } catch (err) {
@@ -99,39 +101,21 @@ export default function ProductsPage() {
   )
 
   // Handle product selection
-  const handleProductSelect = (productId: string, selected: boolean) => {
-    setProducts(prev => 
-      prev.map(product => 
-        product.id === productId ? { ...product, selected } : product
-      )
-    )
-    
+  const handleProductSelect = (product: ShopifyProduct, selected: boolean) => {
     if (selected) {
-      setSelectedProducts(prev => [...prev, productId])
+      addSelectedProduct(product)
     } else {
-      setSelectedProducts(prev => prev.filter(id => id !== productId))
+      removeSelectedProduct(product.id)
     }
   }
 
   // Handle select all
   const handleSelectAll = (selected: boolean) => {
-    setProducts(prev => 
-      prev.map(product => ({ ...product, selected }))
-    )
-    
     if (selected) {
-      setSelectedProducts(filteredProducts.map(p => p.id))
+      filteredProducts.forEach(product => addSelectedProduct(product))
     } else {
-      setSelectedProducts([])
+      clearSelectedProducts()
     }
-  }
-
-  // Clear all selections
-  const clearSelection = () => {
-    setProducts(prev => 
-      prev.map(product => ({ ...product, selected: false }))
-    )
-    setSelectedProducts([])
   }
 
   // Temporarily disabled authentication for testing
@@ -189,21 +173,21 @@ export default function ProductsPage() {
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
-          {selectedProducts.length > 0 && (
-            <Button variant="outline" onClick={clearSelection}>
-              <X className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          )}
-          
-          <Link href="/app/layout">
-            <Button disabled={selectedProducts.length === 0}>
-              Continue to Layout
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
-        </div>
+            <div className="flex items-center space-x-2">
+              {selectedProducts.length > 0 && (
+                <Button variant="outline" onClick={clearSelectedProducts}>
+                  <X className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
+              
+              <Link href="/app/layout">
+                <Button disabled={selectedProducts.length === 0}>
+                  Continue to Layout
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
       </div>
 
       {/* Search and Filters */}
@@ -220,16 +204,16 @@ export default function ProductsPage() {
               />
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="select-all"
-                checked={filteredProducts.length > 0 && filteredProducts.every(p => p.selected)}
-                onCheckedChange={handleSelectAll}
-              />
-              <label htmlFor="select-all" className="text-sm font-medium">
-                Select All ({filteredProducts.length})
-              </label>
-            </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="select-all"
+                    checked={filteredProducts.length > 0 && filteredProducts.every(p => isProductSelected(p.id))}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <label htmlFor="select-all" className="text-sm font-medium">
+                    Select All ({filteredProducts.length})
+                  </label>
+                </div>
           </div>
         </CardContent>
       </Card>
@@ -246,27 +230,27 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">
-                      {product.title}
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      {product.handle}
-                    </CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={product.selected}
-                    onCheckedChange={(checked) => 
-                      handleProductSelect(product.id, checked as boolean)
-                    }
-                  />
-                </div>
-              </CardHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <Card key={product.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg line-clamp-2">
+                          {product.title}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          {product.handle}
+                        </CardDescription>
+                      </div>
+                      <Checkbox
+                        checked={isProductSelected(product.id)}
+                        onCheckedChange={(checked) => 
+                          handleProductSelect(product, checked as boolean)
+                        }
+                      />
+                    </div>
+                  </CardHeader>
               
               <CardContent>
                 <div className="space-y-3">

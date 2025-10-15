@@ -5,39 +5,64 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Save, Eye, Settings } from 'lucide-react'
-// import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
+import { Download, Save, Eye, Settings, Loader2 } from 'lucide-react'
+import { useLinesheet } from '@/contexts/LinesheetContext'
+import Link from 'next/link'
 
 export default function LayoutPage() {
-  // Temporarily disabled authentication for testing
-  
-  const [config, setConfig] = useState({
-    headerTitle: 'CDLP SS26 MENS',
-    subheader: 'MENS',
-    currency: 'USD',
-    priceSource: 'price_list' as 'price_list' | 'metafield' | 'variant_price',
-    season: 'SS26',
-    fieldToggles: {
-      styleNumber: true,
-      season: true,
-      wholesale: true,
-      msrp: true,
-      sizes: true,
-      color: true,
-    },
-  })
+  const { selectedProducts, config, updateConfig } = useLinesheet()
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
-  const updateFieldToggle = (field: keyof typeof config.fieldToggles) => {
-    setConfig(prev => ({
-      ...prev,
-      fieldToggles: {
-        ...prev.fieldToggles,
-        [field]: !prev.fieldToggles[field]
-      }
-    }))
+  const handleConfigChange = (field: string, value: string | boolean) => {
+    const updates = { [field]: value } as any
+    updateConfig(updates)
   }
 
-  // Temporarily disabled authentication for testing
+  const handleFieldToggle = (field: keyof typeof config.fieldToggles) => {
+    updateConfig({
+      fieldToggles: {
+        ...config.fieldToggles,
+        [field]: !config.fieldToggles[field]
+      }
+    })
+  }
+
+  const handleGeneratePDF = async () => {
+    try {
+      setIsGeneratingPDF(true)
+      
+      const response = await fetch('/api/render', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: selectedProducts,
+          config: config,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF')
+      }
+
+      // Create blob and download
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `linesheet-${config.season}-${Date.now()}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -50,225 +75,179 @@ export default function LayoutPage() {
           <p className="text-muted-foreground mt-2">
             Customize your linesheet layout, headers, and field visibility
           </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {selectedProducts.length} products selected
+          </p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="gap-2">
             <Eye className="h-4 w-4" />
             Preview
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Save className="h-4 w-4" />
-            Save Preset
-          </Button>
-          <Button className="gap-2">
-            <Download className="h-4 w-4" />
-            Render PDF
+          <Button 
+            onClick={handleGeneratePDF}
+            disabled={selectedProducts.length === 0 || isGeneratingPDF}
+            className="gap-2"
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Generate PDF
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Configuration Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Header Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Header Settings
-              </CardTitle>
-              <CardDescription>
-                Configure the title and branding for your linesheet
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Header Title
-                </label>
-                <Input
-                  value={config.headerTitle}
-                  onChange={(e) => setConfig(prev => ({ ...prev, headerTitle: e.target.value }))}
-                  placeholder="e.g., CDLP SS26 MENS"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Subheader
-                </label>
-                <Input
-                  value={config.subheader}
-                  onChange={(e) => setConfig(prev => ({ ...prev, subheader: e.target.value }))}
-                  placeholder="e.g., MENS"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Season
-                </label>
-                <Input
-                  value={config.season}
-                  onChange={(e) => setConfig(prev => ({ ...prev, season: e.target.value }))}
-                  placeholder="e.g., SS26"
-                />
-              </div>
-            </CardContent>
-          </Card>
+      {/* Selected Products Summary */}
+      {selectedProducts.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Selected Products ({selectedProducts.length})</CardTitle>
+            <CardDescription>
+              Products that will be included in your linesheet
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {selectedProducts.slice(0, 8).map((product) => (
+                <div key={product.id} className="text-sm">
+                  <div className="font-medium truncate">{product.title}</div>
+                  <div className="text-muted-foreground">{product.handle}</div>
+                </div>
+              ))}
+              {selectedProducts.length > 8 && (
+                <div className="text-sm text-muted-foreground">
+                  +{selectedProducts.length - 8} more products
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Pricing Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Pricing Configuration</CardTitle>
-              <CardDescription>
-                Set currency and price source preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Currency
-                </label>
-                <select 
-                  value={config.currency}
-                  onChange={(e) => setConfig(prev => ({ ...prev, currency: e.target.value }))}
-                  className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm"
-                >
-                  <option value="USD">USD - US Dollar</option>
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="GBP">GBP - British Pound</option>
-                  <option value="SEK">SEK - Swedish Krona</option>
-                  <option value="NOK">NOK - Norwegian Krone</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Price Source
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { value: 'price_list', label: 'B2B Price List' },
-                    { value: 'metafield', label: 'Metafield' },
-                    { value: 'variant_price', label: 'Variant Price' },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        name="priceSource"
-                        value={option.value}
-                        checked={config.priceSource === option.value}
-                        onChange={(e) => setConfig(prev => ({ ...prev, priceSource: e.target.value as 'price_list' | 'metafield' | 'variant_price' }))}
-                        className="rounded"
-                      />
-                      <span className="text-sm">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* General Settings */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>General Settings</CardTitle>
+          <CardDescription>Configure global settings for your linesheet.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="headerTitle" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Header Title
+              </label>
+              <Input
+                id="headerTitle"
+                value={config.headerTitle}
+                onChange={(e) => handleConfigChange('headerTitle', e.target.value)}
+                placeholder="e.g., CDLP SS26 MENS"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label htmlFor="subheader" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Subheader
+              </label>
+              <Input
+                id="subheader"
+                value={config.subheader}
+                onChange={(e) => handleConfigChange('subheader', e.target.value)}
+                placeholder="e.g., MENS"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="currency" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Currency
+              </label>
+              <Input
+                id="currency"
+                value={config.currency}
+                onChange={(e) => handleConfigChange('currency', e.target.value)}
+                placeholder="e.g., USD"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label htmlFor="season" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Season
+              </label>
+              <Input
+                id="season"
+                value={config.season}
+                onChange={(e) => handleConfigChange('season', e.target.value)}
+                placeholder="e.g., SS26"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="priceSource" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Price Source
+            </label>
+            <select
+              id="priceSource"
+              value={config.priceSource}
+              onChange={(e) => handleConfigChange('priceSource', e.target.value)}
+              className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="price_list">Shopify Price List (B2B)</option>
+              <option value="metafield">Product Metafield</option>
+              <option value="variant_price">Default Variant Price</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Field Visibility */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Field Visibility</CardTitle>
-              <CardDescription>
-                Choose which fields to include in your linesheet
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                {Object.entries(config.fieldToggles).map(([field, enabled]) => (
-                  <div key={field} className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={enabled}
-                      onChange={() => updateFieldToggle(field as keyof typeof config.fieldToggles)}
-                    />
-                    <label className="text-sm font-medium capitalize">
-                      {field === 'styleNumber' ? 'Style #' : 
-                       field === 'msrp' ? 'M.S.R.P.' : field}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Field Visibility */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Field Visibility</CardTitle>
+          <CardDescription>Toggle which product fields are visible on the linesheet.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.entries(config.fieldToggles).map(([key, value]) => (
+            <div key={key} className="flex items-center space-x-2">
+              <Checkbox
+                id={key}
+                checked={value}
+                onCheckedChange={() => handleFieldToggle(key as keyof typeof config.fieldToggles)}
+              />
+              <label
+                htmlFor={key}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize"
+              >
+                {key.replace(/([A-Z])/g, ' $1').trim()}
+              </label>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
-        {/* Preview Panel */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                Preview
-              </CardTitle>
-              <CardDescription>
-                Live preview of your linesheet layout
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-white border rounded-lg p-4 text-xs font-mono">
-                {/* Mock preview content */}
-                <div className="text-center mb-4 pb-2 border-b">
-                  <div className="font-bold text-lg">{config.headerTitle}</div>
-                  {config.subheader && (
-                    <div className="text-sm text-gray-600">{config.subheader}</div>
-                  )}
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="border-b pb-2">
-                    <div className="font-semibold uppercase">ESSENTIAL COTTON T-SHIRT</div>
-                    {config.fieldToggles.styleNumber && (
-                      <div>Style #: ECT001</div>
-                    )}
-                    {config.fieldToggles.season && (
-                      <div>Season: {config.season}</div>
-                    )}
-                    {config.fieldToggles.wholesale && (
-                      <div>Wholesale: $12.50</div>
-                    )}
-                    {config.fieldToggles.msrp && (
-                      <div>M.S.R.P.: $25.00</div>
-                    )}
-                    {config.fieldToggles.sizes && (
-                      <div>Sizes: XL - S</div>
-                    )}
-                    {config.fieldToggles.color && (
-                      <div>Color: BLACK</div>
-                    )}
-                  </div>
-                  
-                  <div className="border-b pb-2">
-                    <div className="font-semibold uppercase">PREMIUM DENIM JACKET</div>
-                    {config.fieldToggles.styleNumber && (
-                      <div>Style #: PDJ001</div>
-                    )}
-                    {config.fieldToggles.season && (
-                      <div>Season: {config.season}</div>
-                    )}
-                    {config.fieldToggles.wholesale && (
-                      <div>Wholesale: $44.50</div>
-                    )}
-                    {config.fieldToggles.msrp && (
-                      <div>M.S.R.P.: $89.00</div>
-                    )}
-                    {config.fieldToggles.sizes && (
-                      <div>Sizes: L - S</div>
-                    )}
-                    {config.fieldToggles.color && (
-                      <div>Color: DARK NAVY</div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="text-right mt-4 pt-2 border-t text-xs">
-                  Page 1
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Navigation */}
+      <div className="flex justify-between mt-8">
+        <Link href="/app/products">
+          <Button variant="outline">
+            ← Back to Products
+          </Button>
+        </Link>
+        
+        <Button 
+          onClick={handleGeneratePDF}
+          disabled={selectedProducts.length === 0 || isGeneratingPDF}
+          className="gap-2"
+        >
+          {isGeneratingPDF ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          Generate & Download PDF
+        </Button>
       </div>
     </div>
   )

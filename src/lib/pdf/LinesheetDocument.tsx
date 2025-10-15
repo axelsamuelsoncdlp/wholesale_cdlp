@@ -1,172 +1,148 @@
 import React from 'react'
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font,
-} from '@react-pdf/renderer'
-import { LinesheetItem, LinesheetConfig } from '../types'
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
+import { ShopifyProduct } from '@/lib/shopify'
+import { LinesheetConfig } from '@/contexts/LinesheetContext'
 
-// Register Inter font for PDF
-Font.register({
-  family: 'Inter',
-  fonts: [
-    {
-      src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2',
-      fontWeight: 300,
-    },
-    {
-      src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2',
-      fontWeight: 400,
-    },
-    {
-      src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2',
-      fontWeight: 600,
-    },
-  ],
-})
-
-// Create styles
+// PDF Styles
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 40,
-    fontFamily: 'Inter',
+    padding: 20,
     fontSize: 10,
-    lineHeight: 1.4,
+    fontFamily: 'Helvetica',
   },
   header: {
-    marginBottom: 30,
-    borderBottom: '1px solid #E5E7EB',
-    paddingBottom: 20,
+    marginBottom: 20,
+    borderBottom: '1pt solid #000000',
+    paddingBottom: 10,
   },
   title: {
     fontSize: 24,
-    fontWeight: 600,
+    fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#111827',
+    marginBottom: 5,
   },
-  subheader: {
-    fontSize: 14,
+  subtitle: {
+    fontSize: 16,
     textAlign: 'center',
-    color: '#6B7280',
-    marginBottom: 8,
+    marginBottom: 5,
   },
   season: {
     fontSize: 12,
     textAlign: 'center',
-    color: '#6B7280',
+    fontStyle: 'italic',
   },
-  content: {
-    flex: 1,
+  productsGrid: {
     flexDirection: 'row',
-    gap: 20,
-  },
-  column: {
-    flex: 1,
-    gap: 15,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   productCard: {
-    borderBottom: '1px solid #E5E7EB',
-    paddingBottom: 12,
-    marginBottom: 12,
+    width: '48%',
+    marginBottom: 15,
+    border: '1pt solid #E5E5E5',
+    borderRadius: 5,
+    padding: 10,
   },
-  productName: {
-    fontSize: 11,
-    fontWeight: 600,
+  productImage: {
+    width: '100%',
+    height: 120,
+    marginBottom: 8,
+    objectFit: 'cover',
+  },
+  productTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
     marginBottom: 4,
-    color: '#111827',
-    textTransform: 'uppercase',
   },
-  fieldRow: {
+  productHandle: {
+    fontSize: 9,
+    color: '#666666',
+    marginBottom: 6,
+  },
+  productDetails: {
+    flexDirection: 'column',
+  },
+  detailRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 2,
   },
-  fieldLabel: {
-    width: 60,
-    fontSize: 9,
-    color: '#6B7280',
-    marginRight: 8,
+  detailLabel: {
+    fontSize: 8,
+    fontWeight: 'bold',
   },
-  fieldValue: {
-    flex: 1,
-    fontSize: 9,
-    color: '#111827',
+  detailValue: {
+    fontSize: 8,
+  },
+  price: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#000000',
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    right: 40,
-    fontSize: 9,
-    color: '#6B7280',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#666666',
   },
 })
 
 interface LinesheetDocumentProps {
-  items: LinesheetItem[]
+  products: ShopifyProduct[]
   config: LinesheetConfig
 }
 
-const ProductCard: React.FC<{ item: LinesheetItem; config: LinesheetConfig }> = ({ item, config }) => {
-  const { fieldToggles } = config
+export function LinesheetDocument({ products, config }: LinesheetDocumentProps) {
+  const getProductPrice = (product: ShopifyProduct): string => {
+    if (product.variants.edges.length > 0) {
+      const variant = product.variants.edges[0].node
+      return `${config.currency} ${parseFloat(variant.price).toFixed(2)}`
+    }
+    return 'N/A'
+  }
 
-  return (
-    <View style={styles.productCard}>
-      <Text style={styles.productName}>{item.title}</Text>
-      
-      {fieldToggles.styleNumber && item.styleNumber && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Style #:</Text>
-          <Text style={styles.fieldValue}>{item.styleNumber}</Text>
-        </View>
-      )}
-      
-      {fieldToggles.season && item.season && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Season:</Text>
-          <Text style={styles.fieldValue}>{item.season}</Text>
-        </View>
-      )}
-      
-      {fieldToggles.wholesale && item.wholesale && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Wholesale:</Text>
-          <Text style={styles.fieldValue}>{item.wholesale}</Text>
-        </View>
-      )}
-      
-      {fieldToggles.msrp && item.msrp && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>M.S.R.P.:</Text>
-          <Text style={styles.fieldValue}>{item.msrp}</Text>
-        </View>
-      )}
-      
-      {fieldToggles.sizes && item.sizes && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Sizes:</Text>
-          <Text style={styles.fieldValue}>{item.sizes}</Text>
-        </View>
-      )}
-      
-      {fieldToggles.color && item.color && (
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Color:</Text>
-          <Text style={styles.fieldValue}>{item.color}</Text>
-        </View>
-      )}
-    </View>
-  )
-}
+  const getProductSizes = (product: ShopifyProduct): string => {
+    const sizes = new Set<string>()
+    product.variants.edges.forEach(edge => {
+      edge.node.selectedOptions.forEach(option => {
+        if (option.name.toLowerCase().includes('size')) {
+          sizes.add(option.value)
+        }
+      })
+    })
+    return Array.from(sizes).join(', ') || 'One Size'
+  }
 
-export const LinesheetDocument: React.FC<LinesheetDocumentProps> = ({ items, config }) => {
-  // Split items into two columns
-  const leftColumnItems = items.filter((_, index) => index % 2 === 0)
-  const rightColumnItems = items.filter((_, index) => index % 2 === 1)
+  const getProductColors = (product: ShopifyProduct): string => {
+    const colors = new Set<string>()
+    product.variants.edges.forEach(edge => {
+      edge.node.selectedOptions.forEach(option => {
+        if (option.name.toLowerCase().includes('color')) {
+          colors.add(option.value)
+        }
+      })
+    })
+    return Array.from(colors).join(', ') || 'Multiple'
+  }
+
+  const getProductSeason = (product: ShopifyProduct): string => {
+    const seasonMetafield = product.metafields.edges.find(
+      edge => edge.node.key === 'season'
+    )
+    return seasonMetafield?.node.value || config.season
+  }
+
+  const getProductStyleNumber = (product: ShopifyProduct): string => {
+    const styleMetafield = product.metafields.edges.find(
+      edge => edge.node.key === 'style_number'
+    )
+    return styleMetafield?.node.value || product.handle.toUpperCase()
+  }
 
   return (
     <Document>
@@ -174,36 +150,82 @@ export const LinesheetDocument: React.FC<LinesheetDocumentProps> = ({ items, con
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>{config.headerTitle}</Text>
-          {config.subheader && (
-            <Text style={styles.subheader}>{config.subheader}</Text>
-          )}
-          {config.season && (
-            <Text style={styles.season}>{config.season}</Text>
-          )}
+          <Text style={styles.subtitle}>{config.subheader}</Text>
+          <Text style={styles.season}>{config.season}</Text>
         </View>
 
-        {/* Content - Two Columns */}
-        <View style={styles.content}>
-          {/* Left Column */}
-          <View style={styles.column}>
-            {leftColumnItems.map((item, index) => (
-              <ProductCard key={`left-${index}`} item={item} config={config} />
-            ))}
-          </View>
+        {/* Products Grid */}
+        <View style={styles.productsGrid}>
+          {products.map((product, index) => (
+            <View key={product.id} style={styles.productCard}>
+              {/* Product Image */}
+              {config.fieldToggles.images && product.images.edges.length > 0 && (
+                <Image
+                  style={styles.productImage}
+                  src={product.images.edges[0].node.url}
+                />
+              )}
 
-          {/* Right Column */}
-          <View style={styles.column}>
-            {rightColumnItems.map((item, index) => (
-              <ProductCard key={`right-${index}`} item={item} config={config} />
-            ))}
-          </View>
+              {/* Product Details */}
+              <View style={styles.productDetails}>
+                {config.fieldToggles.productName && (
+                  <Text style={styles.productTitle}>{product.title}</Text>
+                )}
+                
+                {config.fieldToggles.styleNumber && (
+                  <Text style={styles.productHandle}>
+                    Style: {getProductStyleNumber(product)}
+                  </Text>
+                )}
+
+                {config.fieldToggles.season && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Season:</Text>
+                    <Text style={styles.detailValue}>{getProductSeason(product)}</Text>
+                  </View>
+                )}
+
+                {config.fieldToggles.wholesalePrice && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Wholesale:</Text>
+                    <Text style={[styles.detailValue, styles.price]}>
+                      {getProductPrice(product)}
+                    </Text>
+                  </View>
+                )}
+
+                {config.fieldToggles.msrpPrice && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>MSRP:</Text>
+                    <Text style={[styles.detailValue, styles.price]}>
+                      {getProductPrice(product)}
+                    </Text>
+                  </View>
+                )}
+
+                {config.fieldToggles.sizes && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Sizes:</Text>
+                    <Text style={styles.detailValue}>{getProductSizes(product)}</Text>
+                  </View>
+                )}
+
+                {config.fieldToggles.colors && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Colors:</Text>
+                    <Text style={styles.detailValue}>{getProductColors(product)}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          ))}
         </View>
 
         {/* Footer */}
-        <Text style={styles.footer} render={({ pageNumber }) => `Page ${pageNumber}`} />
+        <Text style={styles.footer}>
+          Generated on {new Date().toLocaleDateString()} • {products.length} products
+        </Text>
       </Page>
     </Document>
   )
 }
-
-export default LinesheetDocument
