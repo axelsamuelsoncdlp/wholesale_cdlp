@@ -269,7 +269,6 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
             </View>
           ))}
         </View>
-      ))}
 
           {/* Footer */}
           <View style={styles.footer}>
