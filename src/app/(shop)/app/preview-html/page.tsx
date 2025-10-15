@@ -1,16 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Download, Eye, ArrowLeft, Loader2, FileText } from 'lucide-react'
+import { Download, Eye, ArrowLeft, FileText } from 'lucide-react'
 import { useLinesheet } from '@/contexts/LinesheetContext'
 import Link from 'next/link'
 
 export default function PreviewHtmlPage() {
   const { selectedProducts, config } = useLinesheet()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleDownload = async () => {
     try {
@@ -45,7 +42,7 @@ export default function PreviewHtmlPage() {
     }
   }
 
-  const getProductPrice = (product: any): string => {
+  const getProductPrice = (product: { variants: { edges: Array<{ node: { price: string } }> } }): string => {
     if (product.variants.edges.length > 0) {
       const variant = product.variants.edges[0].node
       return `${config.currency} ${parseFloat(variant.price).toFixed(2)}`
@@ -53,10 +50,10 @@ export default function PreviewHtmlPage() {
     return 'N/A'
   }
 
-  const getProductSizes = (product: any): string => {
+  const getProductSizes = (product: { variants: { edges: Array<{ node: { selectedOptions: Array<{ name: string; value: string }> } }> } }): string => {
     const sizes = new Set<string>()
-    product.variants.edges.forEach((edge: any) => {
-      edge.node.selectedOptions.forEach((option: any) => {
+    product.variants.edges.forEach((edge) => {
+      edge.node.selectedOptions.forEach((option) => {
         if (option.name.toLowerCase().includes('size')) {
           sizes.add(option.value)
         }
@@ -65,10 +62,10 @@ export default function PreviewHtmlPage() {
     return Array.from(sizes).join(', ') || 'One Size'
   }
 
-  const getProductColors = (product: any): string => {
+  const getProductColors = (product: { variants: { edges: Array<{ node: { selectedOptions: Array<{ name: string; value: string }> } }> } }): string => {
     const colors = new Set<string>()
-    product.variants.edges.forEach((edge: any) => {
-      edge.node.selectedOptions.forEach((option: any) => {
+    product.variants.edges.forEach((edge) => {
+      edge.node.selectedOptions.forEach((option) => {
         if (option.name.toLowerCase().includes('color')) {
           colors.add(option.value)
         }
@@ -77,16 +74,16 @@ export default function PreviewHtmlPage() {
     return Array.from(colors).join(', ') || 'Multiple'
   }
 
-  const getProductSeason = (product: any): string => {
+  const getProductSeason = (product: { metafields: { edges: Array<{ node: { key: string; value: string } }> }; handle: string }): string => {
     const seasonMetafield = product.metafields.edges.find(
-      (edge: any) => edge.node.key === 'season'
+      (edge) => edge.node.key === 'season'
     )
     return seasonMetafield?.node.value || config.season
   }
 
-  const getProductStyleNumber = (product: any): string => {
+  const getProductStyleNumber = (product: { metafields: { edges: Array<{ node: { key: string; value: string } }> }; handle: string }): string => {
     const styleMetafield = product.metafields.edges.find(
-      (edge: any) => edge.node.key === 'style_number'
+      (edge) => edge.node.key === 'style_number'
     )
     return styleMetafield?.node.value || product.handle.toUpperCase()
   }
@@ -168,6 +165,7 @@ export default function PreviewHtmlPage() {
                   {/* Product Image */}
                   {config.fieldToggles.images && product.images.edges.length > 0 && (
                     <div className="mb-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={product.images.edges[0].node.url}
                         alt={product.title}
