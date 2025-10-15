@@ -46,7 +46,7 @@ export default function DashboardPage() {
   // Fetch shop data
   useEffect(() => {
     const fetchShopData = async () => {
-      if (!isAuthenticated || authLoading) return
+      if (authLoading) return
       
       try {
         setIsLoading(true)
@@ -66,7 +66,7 @@ export default function DashboardPage() {
     }
 
     fetchShopData()
-  }, [isAuthenticated, authLoading, authenticatedFetch])
+  }, [authLoading, authenticatedFetch])
 
   const handleDeletePreset = (id: string) => {
     setPresets(prev => prev.filter(preset => preset.id !== id))

@@ -165,7 +165,7 @@ export function encryptSensitiveData(data: string): string {
   const secretKey = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32)
   // IV would be generated but not used in current implementation
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _iv = crypto.randomBytes(16)
+  const _iv = crypto.randomBytes(16) // IV not used in current implementation
   
   const cipher = crypto.createCipher(algorithm, secretKey)
   let encrypted = cipher.update(data, 'utf8', 'hex')

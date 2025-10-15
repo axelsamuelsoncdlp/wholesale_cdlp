@@ -28,7 +28,7 @@ export default function ProductsPage() {
   // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!isAuthenticated || authLoading) return
+      if (authLoading) return
       
       try {
         setIsLoading(true)
@@ -53,7 +53,7 @@ export default function ProductsPage() {
     }
 
     fetchProducts()
-  }, [isAuthenticated, authLoading, authenticatedFetch])
+  }, [authLoading, authenticatedFetch])
 
   // Filter products based on search query
   const filteredProducts = products.filter(product =>
