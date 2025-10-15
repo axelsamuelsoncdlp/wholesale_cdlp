@@ -27,20 +27,52 @@ export default function LayoutPage() {
     })
   }
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const result = e.target?.result as string
         updateConfig({ logoUrl: result })
+        
+        // Save logo to database
+        try {
+          await fetch('/api/logo', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              logoUrl: result,
+              shop: 'cdlpstore'
+            }),
+          })
+        } catch (error) {
+          console.error('Error saving logo:', error)
+        }
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleRemoveLogo = () => {
+  const handleRemoveLogo = async () => {
     updateConfig({ logoUrl: undefined })
+    
+    // Remove logo from database
+    try {
+      await fetch('/api/logo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          logoUrl: null,
+          shop: 'cdlpstore'
+        }),
+      })
+    } catch (error) {
+      console.error('Error removing logo:', error)
+    }
   }
 
   const handleGeneratePDF = async () => {

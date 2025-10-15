@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { ShopifyProduct } from '@/lib/shopify'
 
 export interface LinesheetConfig {
@@ -36,11 +36,11 @@ export interface LinesheetContextType {
 }
 
 const defaultConfig: LinesheetConfig = {
-  headerTitle: 'CDLP SS26 MENS',
-  subheader: 'MENS',
+  headerTitle: '',
+  subheader: '',
   currency: 'USD',
   priceSource: 'price_list',
-  season: 'SS26',
+  season: '',
   productsPerRow: 8,
   logoUrl: undefined,
   fieldToggles: {
@@ -60,6 +60,25 @@ const LinesheetContext = createContext<LinesheetContextType | undefined>(undefin
 export function LinesheetProvider({ children }: { children: ReactNode }) {
   const [selectedProducts, setSelectedProducts] = useState<ShopifyProduct[]>([])
   const [config, setConfig] = useState<LinesheetConfig>(defaultConfig)
+
+  // Load logo from database on mount
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const response = await fetch('/api/logo?shop=cdlpstore')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.logoUrl) {
+            setConfig(prev => ({ ...prev, logoUrl: data.logoUrl }))
+          }
+        }
+      } catch (error) {
+        console.error('Error loading logo:', error)
+      }
+    }
+    
+    loadLogo()
+  }, [])
 
   const addSelectedProduct = (product: ShopifyProduct) => {
     setSelectedProducts(prev => {
