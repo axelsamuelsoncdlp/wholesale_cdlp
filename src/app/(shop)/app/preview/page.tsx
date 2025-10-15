@@ -206,7 +206,7 @@ export default function PreviewPage() {
                   
                   {/* Fallback Message */}
                   <div className="text-center text-sm text-muted-foreground">
-                    <p>If the PDF doesn't display above, try opening it in a new tab or downloading the preview.</p>
+                    <p>If the PDF doesn&apos;t display above, try opening it in a new tab or downloading the preview.</p>
                   </div>
                   
                   {/* Debug Info */}
