@@ -3,7 +3,7 @@
  * Ensures only authenticated Shopify stores can access the app
  */
 
-import { getShop, getStaticAccessToken } from './shopify'
+import { getShop } from './shopify'
 import { logSecurityEvent } from './security'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'

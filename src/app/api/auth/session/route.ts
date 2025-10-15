@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       shop,
       sessionToken: token 
     });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Invalid session token" }, { status: 401 });
   }
 }

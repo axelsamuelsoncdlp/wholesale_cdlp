@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
-import { headers } from 'next/headers'
 import { logSecurityEvent, sanitizeInput } from '@/lib/security'
 import { checkAuthentication } from '@/lib/auth'
 

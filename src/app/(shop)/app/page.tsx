@@ -4,7 +4,6 @@ import { Plus, FileText, Copy, Trash2, Download } from 'lucide-react'
 import Link from 'next/link'
 import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
 import { requireAuth, isCDLPStore, CDLP_STORE_CONFIG } from '@/lib/auth'
-import { headers } from 'next/headers'
 
 // Mock data for development
 const mockPresets = [

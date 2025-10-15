@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     // Verify session token
     await jwtVerify(token, new TextEncoder().encode(SHOPIFY_API_SECRET));
     return NextResponse.next();
-  } catch (e) {
+  } catch {
     // Invalid token - redirect to auth
     const shop = request.nextUrl.searchParams.get("shop") || "";
     return NextResponse.redirect(`${APP_URL}/auth?shop=${shop}`);
