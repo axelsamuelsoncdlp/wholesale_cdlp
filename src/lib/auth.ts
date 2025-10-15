@@ -24,13 +24,14 @@ export async function checkAuthentication(): Promise<AuthResult> {
     const userAgent = headersList.get('user-agent')
     const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip')
 
-    // In development mode, allow access for testing
-    if (process.env.NODE_ENV === 'development') {
-      return {
-        isAuthenticated: true,
-        shop: shop || 'development-store',
-      }
-    }
+    // In development mode, still require authentication for security
+    // Comment out automatic access to ensure proper authentication testing
+    // if (process.env.NODE_ENV === 'development') {
+    //   return {
+    //     isAuthenticated: true,
+    //     shop: shop || 'development-store',
+    //   }
+    // }
 
     // No shop detected
     if (!shop) {
@@ -47,25 +48,10 @@ export async function checkAuthentication(): Promise<AuthResult> {
       }
     }
 
-    // Check if we have a static access token (Custom App)
-    const staticToken = getStaticAccessToken()
-    if (staticToken) {
-      // Using static token - no database check needed
-      logSecurityEvent({
-        event: 'static_token_authentication',
-        shop,
-        ip: ip || undefined,
-        userAgent: userAgent || undefined,
-        severity: 'low',
-      })
+    // Always require proper authentication - no automatic access with static token
+    // Static token is only used for API calls, not for authentication bypass
 
-      return {
-        isAuthenticated: true,
-        shop,
-      }
-    }
-
-    // Fallback to database check for OAuth apps
+    // Always require database authentication (OAuth flow)
     const shopData = await getShop(shop)
     if (!shopData) {
       logSecurityEvent({
@@ -79,7 +65,7 @@ export async function checkAuthentication(): Promise<AuthResult> {
       return {
         isAuthenticated: false,
         shop,
-        error: 'Shop not authenticated. Please reinstall the app.',
+        error: 'Shop not authenticated. Please install the app through Shopify Admin.',
       }
     }
 
@@ -128,13 +114,8 @@ export async function requireAuth(): Promise<{ shop: string }> {
   const authResult = await checkAuthentication()
   
   if (!authResult.isAuthenticated) {
-    // In production, redirect to Shopify app installation
-    if (process.env.NODE_ENV === 'production') {
-      redirect('/auth/login')
-    }
-    
-    // In development, allow access but show warning
-    return { shop: 'development-store' }
+    // Always redirect to login for security
+    redirect('/auth/login')
   }
 
   return { shop: authResult.shop! }
