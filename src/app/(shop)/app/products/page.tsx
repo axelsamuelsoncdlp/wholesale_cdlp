@@ -12,9 +12,7 @@ import { useLinesheet } from '@/contexts/LinesheetContext'
 // import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 // import { useAuthenticatedFetch } from '@/lib/apiClient' // Temporarily disabled for testing
 
-interface ProductWithSelection extends ShopifyProduct {
-  selected: boolean
-}
+// Removed unused interface
 
 export default function ProductsPage() {
   // Temporarily disabled authentication for testing

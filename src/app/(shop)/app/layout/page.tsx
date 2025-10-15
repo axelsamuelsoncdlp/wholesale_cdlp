@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Save, Eye, Settings, Loader2 } from 'lucide-react'
+import { Download, Eye, Loader2 } from 'lucide-react'
 import { useLinesheet } from '@/contexts/LinesheetContext'
 import Link from 'next/link'
 
@@ -14,7 +14,7 @@ export default function LayoutPage() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
   const handleConfigChange = (field: string, value: string | boolean) => {
-    const updates = { [field]: value } as any
+    const updates = { [field]: value } as Partial<typeof config>
     updateConfig(updates)
   }
 

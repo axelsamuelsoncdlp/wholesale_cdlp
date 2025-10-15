@@ -156,13 +156,14 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
         {/* Products Grid */}
         <View style={styles.productsGrid}>
-          {products.map((product, index) => (
+          {products.map((product) => (
             <View key={product.id} style={styles.productCard}>
               {/* Product Image */}
               {config.fieldToggles.images && product.images.edges.length > 0 && (
                 <Image
                   style={styles.productImage}
                   src={product.images.edges[0].node.url}
+                  alt={product.title}
                 />
               )}
 
