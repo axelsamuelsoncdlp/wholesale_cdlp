@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
     textAlign: 'left',
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   productImage: {
     width: '100%',
