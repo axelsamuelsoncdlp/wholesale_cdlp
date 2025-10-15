@@ -19,8 +19,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   logo: {
-    width: 80,
     height: 40,
+    width: 'auto',
     marginBottom: 10,
     alignSelf: 'center',
   },
