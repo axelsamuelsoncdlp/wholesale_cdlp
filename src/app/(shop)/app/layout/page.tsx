@@ -80,10 +80,12 @@ export default function LayoutPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Eye className="h-4 w-4" />
-            Preview
-          </Button>
+          <Link href="/app/preview">
+            <Button variant="outline" className="gap-2">
+              <Eye className="h-4 w-4" />
+              Preview
+            </Button>
+          </Link>
           <Button 
             onClick={handleGeneratePDF}
             disabled={selectedProducts.length === 0 || isGeneratingPDF}
@@ -236,18 +238,26 @@ export default function LayoutPage() {
           </Button>
         </Link>
         
-        <Button 
-          onClick={handleGeneratePDF}
-          disabled={selectedProducts.length === 0 || isGeneratingPDF}
-          className="gap-2"
-        >
-          {isGeneratingPDF ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
-          Generate & Download PDF
-        </Button>
+        <div className="flex gap-3">
+          <Link href="/app/preview">
+            <Button variant="outline" className="gap-2">
+              <Eye className="h-4 w-4" />
+              Preview PDF
+            </Button>
+          </Link>
+          <Button 
+            onClick={handleGeneratePDF}
+            disabled={selectedProducts.length === 0 || isGeneratingPDF}
+            className="gap-2"
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Generate & Download PDF
+          </Button>
+        </div>
       </div>
     </div>
   )
