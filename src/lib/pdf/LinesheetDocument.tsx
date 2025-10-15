@@ -18,9 +18,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   logo: {
-    height: 40,
+    height: 30,
     width: 'auto',
-    marginBottom: 10,
+    marginBottom: 8,
     alignSelf: 'center',
   },
   title: {
@@ -48,32 +48,32 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   productCard: {
-    marginBottom: 10,
-    marginRight: 3,
-    padding: 4,
-    minHeight: 180,
+    marginBottom: 8,
+    marginRight: 2,
+    padding: 3,
+    minHeight: 160,
     textAlign: 'left',
     width: '11%',
   },
   productImage: {
     width: '100%',
-    height: 120,
-    marginBottom: 6,
+    height: 100,
+    marginBottom: 4,
     objectFit: 'contain',
     alignSelf: 'center',
   },
   productTitle: {
-    fontSize: 7,
+    fontSize: 6,
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 1,
     textAlign: 'left',
-    lineHeight: 1.1,
+    lineHeight: 1.0,
     textTransform: 'uppercase',
   },
   productHandle: {
-    fontSize: 7,
+    fontSize: 6,
     color: '#000000',
-    marginBottom: 2,
+    marginBottom: 1,
     textAlign: 'left',
   },
   productDetails: {
@@ -87,20 +87,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailLabel: {
-    fontSize: 6,
+    fontSize: 5,
     fontWeight: 'bold',
     marginRight: 1,
   },
   detailValue: {
-    fontSize: 6,
+    fontSize: 5,
     color: '#000000',
   },
   price: {
-    fontSize: 6,
+    fontSize: 5,
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'left',
-    marginBottom: 1,
+    marginBottom: 0.5,
   },
   footer: {
     position: 'absolute',
@@ -167,7 +167,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
   // Calculate card width based on products per row (landscape A4 = 842px width)
   const availableWidth = 842 - 40 // Total width minus padding
-  const marginBetweenCards = (config.productsPerRow - 1) * 3 // 3px margin between cards
+  const marginBetweenCards = (config.productsPerRow - 1) * 2 // 2px margin between cards
   const cardWidth = (availableWidth - marginBetweenCards) / config.productsPerRow
   
   const dynamicStyles = StyleSheet.create({
@@ -177,25 +177,39 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
     },
   })
 
+  // Split products into pages of 16 (8 per row, 2 rows)
+  const productsPerPage = 16
+  const pages = []
+  for (let i = 0; i < products.length; i += productsPerPage) {
+    pages.push(products.slice(i, i + productsPerPage))
+  }
+
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          {config.logoUrl && (
-            <Image
-              style={styles.logo}
-              src={config.logoUrl}
-            />
-          )}
-          <Text style={styles.title}>{config.headerTitle}</Text>
-          <Text style={styles.subtitle}>{config.subheader}</Text>
-          <Text style={styles.season}>{config.season}</Text>
-        </View>
+      {pages.map((pageProducts, pageIndex) => (
+        <Page key={pageIndex} size="A4" orientation="landscape" style={styles.page}>
+          {/* Header */}
+          <View style={styles.header}>
+            {config.logoUrl && (
+              <Image
+                style={styles.logo}
+                src={config.logoUrl}
+              />
+            )}
+            {config.headerTitle && (
+              <Text style={styles.title}>{config.headerTitle}</Text>
+            )}
+            {config.subheader && (
+              <Text style={styles.subtitle}>{config.subheader}</Text>
+            )}
+            {config.season && (
+              <Text style={styles.season}>{config.season}</Text>
+            )}
+          </View>
 
-        {/* Products Grid */}
-        <View style={styles.productsGrid}>
-          {products.map((product) => (
+          {/* Products Grid */}
+          <View style={styles.productsGrid}>
+            {pageProducts.map((product) => (
             <View key={product.id} style={dynamicStyles.productCard}>
               {/* Product Image */}
               {config.fieldToggles.images && product.images.edges.length > 0 && (
@@ -255,19 +269,20 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           ))}
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 20 }}>
-            Page: 2 of 16
-          </Text>
-          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 200 }}>
-            {config.headerTitle}
-          </Text>
-          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, right: 20 }}>
-            POWERED BY NUORDER
-          </Text>
-        </View>
-      </Page>
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 20 }}>
+              Page: {pageIndex + 1} of {pages.length}
+            </Text>
+            <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 200 }}>
+              {config.headerTitle}
+            </Text>
+            <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, right: 20 }}>
+              POWERED BY NUORDER
+            </Text>
+          </View>
+        </Page>
+      ))}
     </Document>
   )
 }

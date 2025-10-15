@@ -12,12 +12,12 @@ export async function POST(request: NextRequest) {
     // Update shop with logo URL
     await db.shop.upsert({
       where: { domain: shop },
-      update: { logoUrl },
+      update: { logoUrl: logoUrl || null },
       create: {
         id: shop,
         domain: shop,
-        logoUrl,
-        accessToken: '', // Will be set when OAuth is implemented
+        logoUrl: logoUrl || null,
+        accessToken: 'temp-token', // Temporary token for testing
       },
     })
 
