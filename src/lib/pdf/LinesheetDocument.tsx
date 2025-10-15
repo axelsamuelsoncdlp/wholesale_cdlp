@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
     height: 100,
     marginBottom: 4,
     objectFit: 'contain',
-    alignSelf: 'center',
   },
   productTitle: {
     fontSize: 6,
@@ -176,7 +175,11 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
     return styleMetafield?.node.value || product.handle.toUpperCase()
   }
 
-  // No need for dynamic width calculation since we're using flex
+  // Calculate card width for image alignment
+  const availableWidth = 842 - 40 // Total width minus padding
+  const marginBetweenCards = (config.productsPerRow - 1) * 2 // 2px margin between cards
+  const cardWidth = (availableWidth - marginBetweenCards) / config.productsPerRow
+
   const dynamicStyles = StyleSheet.create({
     productCard: {
       ...styles.productCard,
@@ -218,8 +221,42 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           <View style={styles.productsGrid}>
             {Array.from({ length: Math.ceil(pageProducts.length / 8) }, (_, rowIndex) => (
               <View key={rowIndex} style={styles.productRow}>
-                {pageProducts.slice(rowIndex * 8, (rowIndex + 1) * 8).map((product) => (
-                  <View key={product.id} style={dynamicStyles.productCard}>
+                {pageProducts.slice(rowIndex * 8, (rowIndex + 1) * 8).map((product) => {
+                  const imageNode = product.images.edges.length > 0 ? product.images.edges[0].node : null
+                  let imagePaddingLeft = 0
+
+                  if (imageNode && imageNode.width && imageNode.height) {
+                    const imageAspectRatio = imageNode.width / imageNode.height
+                    const productImageElementWidth = cardWidth
+                    const productImageElementHeight = styles.productImage.height
+
+                    let effectiveImageContentWidth = productImageElementWidth
+
+                    // Calculate effective dimensions based on objectFit: 'contain'
+                    // If image is wider than its container aspect ratio
+                    if (imageAspectRatio > (productImageElementWidth / productImageElementHeight)) {
+                      // Image will be constrained by width, height will be less than productImageElementHeight
+                      effectiveImageContentWidth = productImageElementWidth
+                    } else {
+                      // Image will be constrained by height, width will be less than productImageElementWidth
+                      effectiveImageContentWidth = productImageElementHeight * imageAspectRatio
+                    }
+
+                    // If the effective content width is less than the element width, it means there's horizontal padding
+                    if (effectiveImageContentWidth < productImageElementWidth) {
+                      imagePaddingLeft = (productImageElementWidth - effectiveImageContentWidth) / 2
+                    }
+                  }
+
+                  const productDetailsDynamicStyle = StyleSheet.create({
+                    productDetails: {
+                      ...styles.productDetails,
+                      paddingLeft: imagePaddingLeft,
+                    },
+                  })
+
+                  return (
+                    <View key={product.id} style={dynamicStyles.productCard}>
                     {/* Product Image */}
                     {config.fieldToggles.images && product.images.edges.length > 0 && (
                       // eslint-disable-next-line jsx-a11y/alt-text
@@ -230,7 +267,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
                     )}
 
                     {/* Product Details */}
-                    <View style={styles.productDetails}>
+                    <View style={productDetailsDynamicStyle.productDetails}>
                       {config.fieldToggles.productName && (
                         <Text style={styles.productTitle}>{product.title}</Text>
                       )}
@@ -275,7 +312,8 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
                       )}
                     </View>
                   </View>
-                ))}
+                  )
+                })}
               </View>
             ))}
           </View>
