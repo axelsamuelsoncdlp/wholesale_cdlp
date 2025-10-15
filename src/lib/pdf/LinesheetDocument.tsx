@@ -48,32 +48,32 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   productCard: {
-    marginBottom: 15,
-    marginRight: 6,
-    padding: 6,
-    minHeight: 200,
+    marginBottom: 10,
+    marginRight: 3,
+    padding: 4,
+    minHeight: 180,
     textAlign: 'left',
-    width: '11.5%',
+    width: '11%',
   },
   productImage: {
     width: '100%',
-    height: 140,
-    marginBottom: 8,
+    height: 120,
+    marginBottom: 6,
     objectFit: 'contain',
     alignSelf: 'center',
   },
   productTitle: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 'bold',
-    marginBottom: 3,
+    marginBottom: 2,
     textAlign: 'left',
-    lineHeight: 1.2,
+    lineHeight: 1.1,
     textTransform: 'uppercase',
   },
   productHandle: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#000000',
-    marginBottom: 3,
+    marginBottom: 2,
     textAlign: 'left',
   },
   productDetails: {
@@ -83,20 +83,20 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 2,
+    marginBottom: 1,
     alignItems: 'center',
   },
   detailLabel: {
-    fontSize: 7,
+    fontSize: 6,
     fontWeight: 'bold',
-    marginRight: 2,
+    marginRight: 1,
   },
   detailValue: {
-    fontSize: 7,
+    fontSize: 6,
     color: '#000000',
   },
   price: {
-    fontSize: 7,
+    fontSize: 6,
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'left',
@@ -167,7 +167,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
   // Calculate card width based on products per row (landscape A4 = 842px width)
   const availableWidth = 842 - 40 // Total width minus padding
-  const marginBetweenCards = (config.productsPerRow - 1) * 6 // 6px margin between cards
+  const marginBetweenCards = (config.productsPerRow - 1) * 3 // 3px margin between cards
   const cardWidth = (availableWidth - marginBetweenCards) / config.productsPerRow
   
   const dynamicStyles = StyleSheet.create({
