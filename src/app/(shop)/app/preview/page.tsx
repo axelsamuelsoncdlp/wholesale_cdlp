@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Download, Eye, ArrowLeft, Loader2, FileText } from 'lucide-react'
@@ -13,7 +13,7 @@ export default function PreviewPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const generatePreview = async () => {
+  const generatePreview = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -41,7 +41,7 @@ export default function PreviewPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [selectedProducts, config])
 
   const handleDownload = async () => {
     try {
@@ -81,7 +81,7 @@ export default function PreviewPage() {
     if (selectedProducts.length > 0) {
       generatePreview()
     }
-  }, [selectedProducts, config])
+  }, [selectedProducts.length, generatePreview])
 
   if (selectedProducts.length === 0) {
     return (
@@ -178,7 +178,7 @@ export default function PreviewPage() {
               ) : (
                 <div className="text-center py-12">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">Click "Generate Preview" to see your linesheet</p>
+                  <p className="text-muted-foreground">Click &quot;Generate Preview&quot; to see your linesheet</p>
                 </div>
               )}
             </CardContent>
