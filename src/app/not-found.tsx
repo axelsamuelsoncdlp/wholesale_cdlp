@@ -10,7 +10,7 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-muted-foreground mb-8">
-            The page you're looking for doesn't exist.
+            The page you&apos;re looking for doesn&apos;t exist.
           </p>
         </div>
         
@@ -24,7 +24,7 @@ export default function NotFound() {
           
           <div className="text-sm text-muted-foreground">
             <p>This is a Shopify embedded app.</p>
-            <p>Make sure you're accessing it from the correct URL.</p>
+            <p>Make sure you&apos;re accessing it from the correct URL.</p>
           </div>
         </div>
       </div>

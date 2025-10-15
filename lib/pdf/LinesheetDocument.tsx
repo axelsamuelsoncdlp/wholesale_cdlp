@@ -6,7 +6,6 @@ import {
   View,
   StyleSheet,
   Font,
-  Image,
 } from '@react-pdf/renderer'
 import { LinesheetItem, LinesheetConfig } from '../types'
 
@@ -201,7 +200,7 @@ export const LinesheetDocument: React.FC<LinesheetDocumentProps> = ({ items, con
         </View>
 
         {/* Footer */}
-        <Text style={styles.footer} render={({ pageNumber, totalPages }) => `Page ${pageNumber}`} />
+        <Text style={styles.footer} render={({ pageNumber }) => `Page ${pageNumber}`} />
       </Page>
     </Document>
   )
