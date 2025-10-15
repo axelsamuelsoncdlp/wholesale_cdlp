@@ -163,7 +163,6 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
                 <Image
                   style={styles.productImage}
                   src={product.images.edges[0].node.url}
-                  alt={product.title}
                 />
               )}
 
