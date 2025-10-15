@@ -8,47 +8,66 @@ import Link from 'next/link'
 // import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 // import { useAuthenticatedFetch } from '@/lib/apiClient' // Temporarily disabled for testing
 
-// Mock data for development
-const mockPresets = [
-  {
-    id: '1',
-    name: 'SS24 Collection',
-    productCount: 12,
-    lastModified: '2024-01-15',
-    status: 'draft' as const
-  },
-  {
-    id: '2', 
-    name: 'Core Essentials',
-    productCount: 8,
-    lastModified: '2024-01-10',
-    status: 'published' as const
-  },
-  {
-    id: '3',
-    name: 'Limited Edition',
-    productCount: 5,
-    lastModified: '2024-01-08',
-    status: 'draft' as const
+// Real data interfaces
+interface ShopData {
+  name?: string
+  domain?: string
+  email?: string
+  plan?: {
+    displayName: string
   }
-]
+  currencyCode?: string
+  timezone?: string
+}
 
 export default function DashboardPage() {
   // Temporarily disabled authentication for testing
   
-  const [presets, setPresets] = useState(mockPresets)
-  // const [shopData] = useState<{ name?: string; domain?: string } | null>(null) // Shop data not used in current implementation
+  const [presets, setPresets] = useState<any[]>([]) // Will be empty for now - no presets saved yet
+  const [shopData, setShopData] = useState<ShopData | null>(null)
   const [productCount, setProductCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch shop data - temporarily disabled for testing
+  // Fetch real shop data and product count
   useEffect(() => {
-    // Mock data for testing
-    setTimeout(() => {
-      setProductCount(42) // Mock product count
-      setIsLoading(false)
-    }, 1000)
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // Fetch shop data and product count in parallel
+        const [shopResponse, productsResponse] = await Promise.all([
+          fetch('/api/shop'),
+          fetch('/api/products?first=1') // Just get count, not all products
+        ])
+
+        if (!shopResponse.ok) {
+          throw new Error('Failed to fetch shop data')
+        }
+
+        const shopDataResult = await shopResponse.json()
+        setShopData(shopDataResult.shop)
+
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json()
+          // Get total count by fetching first page with larger limit
+          const countResponse = await fetch('/api/products?first=250')
+          if (countResponse.ok) {
+            const countData = await countResponse.json()
+            setProductCount(countData.edges.length)
+          }
+        }
+
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
   }, [])
 
   const handleDeletePreset = (id: string) => {
@@ -82,7 +101,14 @@ export default function DashboardPage() {
           </p>
           <div className="flex items-center mt-2 text-sm text-muted-foreground">
             <Store className="h-4 w-4 mr-1" />
-            Connected to cdlpstore (testing mode)
+            {shopData ? (
+              <>
+                Connected to {shopData.name || shopData.domain || 'cdlpstore'}
+                {shopData.plan && ` (${shopData.plan.displayName})`}
+              </>
+            ) : (
+              'Connected to cdlpstore'
+            )}
           </div>
         </div>
         <Link href="/app/products">
@@ -167,73 +193,74 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {presets.map((preset) => (
-            <Card key={preset.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{preset.name}</CardTitle>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDuplicatePreset(preset.id)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeletePreset(preset.id)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+        {presets.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {presets.map((preset) => (
+              <Card key={preset.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{preset.name}</CardTitle>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDuplicatePreset(preset.id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeletePreset(preset.id)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <CardDescription>
-                  {preset.productCount} products • Modified {preset.lastModified}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    preset.status === 'published' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                  }`}>
-                    {preset.status}
-                  </span>
-                  <div className="flex gap-1">
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-1" />
-                      PDF
-                    </Button>
+                  <CardDescription>
+                    {preset.productCount} products • Modified {preset.lastModified}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      preset.status === 'published' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                    }`}>
+                      {preset.status}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {presets.length === 0 && (
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
           <Card className="text-center py-12">
             <CardContent>
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No linesheet presets yet</h3>
               <p className="text-muted-foreground mb-4">
-                Create your first linesheet to get started
+                Create your first linesheet to get started with your {productCount} products
               </p>
               <Link href="/app/products">
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Linesheet
+                  Create Your First Linesheet
                 </Button>
               </Link>
             </CardContent>
           </Card>
         )}
+
       </div>
     </div>
   )
