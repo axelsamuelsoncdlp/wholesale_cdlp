@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     ).toBuffer()
 
     // Return PDF as response
-    return new NextResponse(pdfBuffer as BodyInit, {
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="linesheet-${config.season}-${Date.now()}.pdf"`,
