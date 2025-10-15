@@ -217,7 +217,7 @@ export class ShopifyClient {
 // OAuth helpers
 export function getShopifyOAuthUrl(shop: string, redirectUri: string): string {
   const scopes = 'read_products,read_product_listings'
-  const clientId = process.env.SHOPIFY_API_KEY!
+  const clientId = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY!
   
   const params = new URLSearchParams({
     client_id: clientId,
@@ -234,7 +234,7 @@ export async function exchangeCodeForToken(
   code: string,
   redirectUri: string
 ): Promise<string> {
-  const clientId = process.env.SHOPIFY_API_KEY!
+  const clientId = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY!
   const clientSecret = process.env.SHOPIFY_API_SECRET!
 
   const response = await fetch(`https://${shop}.myshopify.com/admin/oauth/access_token`, {

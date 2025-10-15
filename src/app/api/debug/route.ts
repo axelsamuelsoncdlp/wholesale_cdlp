@@ -11,14 +11,15 @@ export async function GET(request: NextRequest) {
 
   // Check environment variables (without exposing sensitive values)
   const envCheck = {
-    hasApiKey: !!process.env.SHOPIFY_API_KEY,
+    hasApiKey: !!process.env.NEXT_PUBLIC_SHOPIFY_API_KEY,
     hasApiSecret: !!process.env.SHOPIFY_API_SECRET,
     hasAccessToken: !!process.env.SHOPIFY_ACCESS_TOKEN,
+    hasSupabaseUrl: !!process.env.SUPABASE_URL,
     hasDatabaseUrl: !!process.env.DATABASE_URL,
     nodeEnv: process.env.NODE_ENV,
     shopifyApiVersion: process.env.SHOPIFY_API_VERSION || '2024-10',
     // Show first few characters for verification
-    apiKeyPrefix: process.env.SHOPIFY_API_KEY?.substring(0, 8) + '...',
+    apiKeyPrefix: process.env.NEXT_PUBLIC_SHOPIFY_API_KEY?.substring(0, 8) + '...',
     accessTokenPrefix: process.env.SHOPIFY_ACCESS_TOKEN?.substring(0, 8) + '...',
   }
 

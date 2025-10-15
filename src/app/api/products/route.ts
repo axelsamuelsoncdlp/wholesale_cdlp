@@ -10,13 +10,21 @@ export async function GET(request: NextRequest) {
     // Temporarily disabled authentication for testing
     const shop = 'cdlpstore' // Hardcoded for testing
 
+    console.log('Products API called:', { shop, ip })
+    console.log('Environment check:', {
+      hasApiKey: !!process.env.NEXT_PUBLIC_SHOPIFY_API_KEY,
+      hasApiSecret: !!process.env.SHOPIFY_API_SECRET,
+      hasAccessToken: !!process.env.SHOPIFY_ACCESS_TOKEN,
+    })
+
     // Try static token first (Custom App)
     let client = createStaticShopifyClient(shop)
     
-    // Fallback to database token (OAuth app)
     if (!client) {
+      console.log('No static client, trying database token...')
       const shopData = await getShop(shop)
       if (!shopData) {
+        console.log('No shop data found in database')
         logSecurityEvent({
           event: 'products_api_shop_not_found',
           shop,
@@ -25,11 +33,14 @@ export async function GET(request: NextRequest) {
         })
 
         return NextResponse.json(
-          { error: 'Shop data not found' },
+          { error: 'Shop data not found and no static token available' },
           { status: 404 }
         )
       }
       client = new ShopifyClient(shop, shopData.accessToken)
+      console.log('Created client from database token')
+    } else {
+      console.log('Created client from static token')
     }
 
     // Validate and sanitize input parameters
