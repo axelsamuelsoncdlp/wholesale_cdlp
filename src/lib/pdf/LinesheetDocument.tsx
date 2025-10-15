@@ -49,11 +49,11 @@ const styles = StyleSheet.create({
   },
   productCard: {
     marginBottom: 15,
-    marginRight: 8,
-    padding: 8,
-    minHeight: 220,
+    marginRight: 6,
+    padding: 6,
+    minHeight: 200,
     textAlign: 'left',
-    width: '12%',
+    width: '11.5%',
   },
   productImage: {
     width: '100%',
@@ -63,11 +63,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   productTitle: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: 'bold',
     marginBottom: 3,
     textAlign: 'left',
     lineHeight: 1.2,
+    textTransform: 'uppercase',
   },
   productHandle: {
     fontSize: 8,
@@ -166,7 +167,8 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
   // Calculate card width based on products per row (landscape A4 = 842px width)
   const availableWidth = 842 - 40 // Total width minus padding
-  const cardWidth = availableWidth / config.productsPerRow
+  const marginBetweenCards = (config.productsPerRow - 1) * 6 // 6px margin between cards
+  const cardWidth = (availableWidth - marginBetweenCards) / config.productsPerRow
   
   const dynamicStyles = StyleSheet.create({
     productCard: {
