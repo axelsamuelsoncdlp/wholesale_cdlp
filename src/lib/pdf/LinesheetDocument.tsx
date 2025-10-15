@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
     textAlign: 'left',
     flex: 1,
+    alignItems: 'center',
   },
   productImage: {
     width: '100%',
@@ -82,21 +83,26 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingLeft: 0,
     paddingRight: 0,
+    width: '100%',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
     marginBottom: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
   },
   detailLabel: {
     fontSize: 5,
     fontWeight: 'bold',
     marginRight: 1,
+    flexShrink: 0,
   },
   detailValue: {
     fontSize: 5,
     color: '#000000',
+    flexWrap: 'wrap',
+    maxWidth: '100%',
   },
   price: {
     fontSize: 5,
@@ -104,6 +110,8 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'left',
     marginBottom: 0.5,
+    flexWrap: 'wrap',
+    maxWidth: '100%',
   },
   footer: {
     position: 'absolute',
