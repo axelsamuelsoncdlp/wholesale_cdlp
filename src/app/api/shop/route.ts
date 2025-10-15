@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
               }
             }
           `
-          const response = await client.query(shopQuery)
+          const response = await client.graphql(shopQuery)
           shopData = response.data.shop
         }
       } catch (error) {
