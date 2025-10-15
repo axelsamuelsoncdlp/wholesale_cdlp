@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyShopifyHmac, exchangeCodeForToken } from '@/lib/shopify'
-import { db } from '@/lib/db'
+import { exchangeCodeForToken, saveShop } from '@/lib/shopify'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -9,40 +8,25 @@ export async function GET(request: NextRequest) {
   // const state = searchParams.get('state')
   // const hmac = searchParams.get('hmac')
 
-  // Verify the request is from Shopify
-  if (!verifyShopifyHmac(Object.fromEntries(searchParams))) {
-    return NextResponse.json({ error: 'Invalid HMAC' }, { status: 400 })
-  }
-
   if (!shop || !code) {
     return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 })
   }
 
   try {
     // Exchange code for access token
-    const { accessToken } = await exchangeCodeForToken(shop, code)
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    const accessToken = await exchangeCodeForToken(shop, code, redirectUri)
 
-    // Store shop and access token in database
-    await db.shop.upsert({
-      where: { domain: shop },
-      update: {
-        accessToken,
-        updatedAt: new Date(),
-      },
-      create: {
-        domain: shop,
-        accessToken,
-      },
-    })
+    // Save shop and access token to database
+    await saveShop(shop, accessToken)
 
-    // Redirect to the app with the shop parameter
-    const appUrl = new URL('/app', request.url)
-    appUrl.searchParams.set('shop', shop)
-    appUrl.searchParams.set('host', searchParams.get('host') || '')
-
-    return NextResponse.redirect(appUrl)
+    // Redirect to app
+    return NextResponse.redirect(new URL('/app', request.url))
   } catch (error) {
-    console.error('OAuth error:', error)
-    return NextResponse.json({ error: 'OAuth failed' }, { status: 500 })
+    console.error('OAuth callback error:', error)
+    return NextResponse.json(
+      { error: 'Failed to complete OAuth flow' },
+      { status: 500 }
+    )
   }
 }

@@ -1,32 +1,5 @@
-import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="max-w-md mx-auto text-center p-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-light tracking-tight text-foreground mb-4">
-            CDLP Linesheet Generator
-          </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Professional wholesale linesheet generator for Shopify stores
-          </p>
-        </div>
-        
-        <div className="space-y-4">
-          <Link 
-            href="/app"
-            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors"
-          >
-            Go to App
-          </Link>
-          
-          <div className="text-sm text-muted-foreground">
-            <p>This is an embedded Shopify app.</p>
-            <p>Install it from your Shopify Admin to get started.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  redirect('/app')
 }

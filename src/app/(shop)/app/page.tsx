@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Plus, FileText, Copy, Trash2, Download } from 'lucide-react'
 import Link from 'next/link'
+import { getShop, ShopifyClient } from '@/lib/shopify'
+import { headers } from 'next/headers'
 
 // Mock data for development
 const mockPresets = [
@@ -23,7 +25,28 @@ const mockPresets = [
   },
 ]
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  // Get shop from headers (set by middleware)
+  const headersList = await headers()
+  const shop = headersList.get('x-shop')
+
+  // Check if shop is authenticated
+  let shopData = null
+  let productCount = 0
+
+  if (shop) {
+    try {
+      shopData = await getShop(shop)
+      if (shopData) {
+        const client = new ShopifyClient(shop, shopData.accessToken)
+        const products = await client.getProducts(10) // Get first 10 products
+        productCount = products.edges.length
+      }
+    } catch (error) {
+      console.error('Error fetching shop data:', error)
+    }
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Header */}
@@ -33,11 +56,14 @@ export default function DashboardPage() {
             Linesheet Generator
           </h1>
           <p className="text-muted-foreground mt-2">
-            Create professional wholesale linesheets from your Shopify products
+            {shopData 
+              ? `Connected to ${shopData.domain}.myshopify.com • ${productCount} products available`
+              : 'Create professional wholesale linesheets from your Shopify products'
+            }
           </p>
         </div>
         <Link href="/app/products">
-          <Button size="lg" className="gap-2">
+          <Button size="lg" className="gap-2" disabled={!shopData}>
             <Plus className="h-4 w-4" />
             New Linesheet
           </Button>
@@ -105,6 +131,31 @@ export default function DashboardPage() {
                 Create Your First Linesheet
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Connection Status */}
+      {!shopData && (
+        <Card className="mb-8 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+          <CardHeader>
+            <CardTitle className="text-lg text-yellow-800 dark:text-yellow-200">
+              Shopify Store Not Connected
+            </CardTitle>
+            <CardDescription className="text-yellow-700 dark:text-yellow-300">
+              Connect your Shopify store to start creating linesheets
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 rounded-full bg-red-500" />
+              <span className="text-sm text-yellow-700 dark:text-yellow-300">
+                Not Connected
+              </span>
+            </div>
+            <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+              In development mode, you can still test the product picker functionality.
+            </p>
           </CardContent>
         </Card>
       )}
