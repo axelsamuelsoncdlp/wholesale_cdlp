@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, FileText, Copy, Trash2, Download } from 'lucide-react'
 import Link from 'next/link'
 import { getShop, ShopifyClient } from '@/lib/shopify'
+import { requireAuth } from '@/lib/auth'
 import { headers } from 'next/headers'
 
 // Mock data for development
@@ -26,15 +27,14 @@ const mockPresets = [
 ]
 
 export default async function DashboardPage() {
-  // Get shop from headers (set by middleware)
-  const headersList = await headers()
-  const shop = headersList.get('x-shop')
-
+  // Require authentication
+  const { shop } = await requireAuth()
+  
   // Check if shop is authenticated
   let shopData = null
   let productCount = 0
 
-  if (shop) {
+  if (shop && shop !== 'development-store') {
     try {
       shopData = await getShop(shop)
       if (shopData) {

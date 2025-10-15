@@ -2,41 +2,44 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getShop, ShopifyClient } from '@/lib/shopify'
 import { headers } from 'next/headers'
 import { logSecurityEvent, sanitizeInput } from '@/lib/security'
+import { checkAuthentication } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
   
   try {
-    // Get shop from headers
-    const headersList = await headers()
-    const shop = headersList.get('x-shop')
-
-    if (!shop) {
+    // Check authentication first
+    const authResult = await checkAuthentication()
+    
+    if (!authResult.isAuthenticated) {
       logSecurityEvent({
-        event: 'products_api_no_shop',
+        event: 'products_api_unauthenticated_access',
         ip,
-        severity: 'medium',
+        severity: 'high',
+        details: { error: authResult.error },
       })
 
       return NextResponse.json(
-        { error: 'Shop not found in headers' },
-        { status: 400 }
+        { error: authResult.error || 'Authentication required' },
+        { status: 401 }
       )
     }
+
+    const shop = authResult.shop!
 
     // Get shop data from database
     const shopData = await getShop(shop)
     if (!shopData) {
       logSecurityEvent({
-        event: 'products_api_unauthenticated',
+        event: 'products_api_shop_not_found',
         shop,
         ip,
         severity: 'high',
       })
 
       return NextResponse.json(
-        { error: 'Shop not authenticated' },
-        { status: 401 }
+        { error: 'Shop data not found' },
+        { status: 404 }
       )
     }
 
