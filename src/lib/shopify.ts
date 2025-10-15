@@ -55,7 +55,7 @@ export interface ShopifyGraphQLResponse<T> {
 // Shopify GraphQL queries
 export const GET_PRODUCTS_QUERY = `
   query getProducts($first: Int!, $after: String) {
-    productListings(first: $first, after: $after) {
+    products(first: $first, after: $after) {
       edges {
         node {
           id
@@ -186,7 +186,7 @@ export class ShopifyClient {
     console.log('API URL:', this.getApiUrl())
     
     const response = await this.graphql<{
-      productListings: {
+      products: {
         edges: Array<{
           node: ShopifyProduct
         }>
@@ -208,7 +208,7 @@ export class ShopifyClient {
       throw new Error(`GraphQL errors: ${response.errors.map(e => e.message).join(', ')}`)
     }
 
-    return response.data.productListings
+    return response.data.products
   }
 
   async getProduct(id: string) {
