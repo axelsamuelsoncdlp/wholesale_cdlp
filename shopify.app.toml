@@ -1,0 +1,12 @@
+name = "CDLP Linesheet App"
+client_id = "6393b08a5dbb1fcb9703cbd476c8f8e1"
+application_url = "https://wholesale-cdlp-git-main-cdlps-projects.vercel.app/"
+embedded = true
+
+[access_scopes]
+scopes = "read_products,read_product_listings"
+
+[auth]
+redirect_urls = [
+  "https://wholesale-cdlp-git-main-cdlps-projects.vercel.app/auth/callback"
+]

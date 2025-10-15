@@ -1,102 +1,80 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { exchangeCodeForToken, saveShop } from '@/lib/shopify'
-import { verifyShopifyHmac, sanitizeShopDomain, logSecurityEvent } from '@/lib/security'
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const shop = searchParams.get('shop')
-  const code = searchParams.get('code')
-  const state = searchParams.get('state')
-  const hmac = searchParams.get('hmac')
+const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY!;
+const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET!;
+const APP_URL = process.env.APP_URL!;
 
-  // Log security event
-  logSecurityEvent({
-    event: 'oauth_callback_attempt',
-    shop: shop || undefined,
-    ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-    userAgent: request.headers.get('user-agent') || undefined,
-    severity: 'medium',
-    details: {
-      hasCode: !!code,
-      hasHmac: !!hmac,
-      hasState: !!state,
-    },
-  })
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const shop = url.searchParams.get("shop");
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const hmac = url.searchParams.get("hmac");
 
-  // Validate HMAC for security
-  if (!verifyShopifyHmac(Object.fromEntries(searchParams))) {
-    logSecurityEvent({
-      event: 'oauth_callback_invalid_hmac',
-      shop: shop || undefined,
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
-      userAgent: request.headers.get('user-agent') || undefined,
-      severity: 'high',
-    })
-
-    return NextResponse.json(
-      { error: 'Invalid HMAC signature' },
-      { status: 400 }
-    )
+  // Verify state for CSRF protection
+  const savedState = req.cookies.get("shopify_oauth_state")?.value;
+  if (!savedState || savedState !== state) {
+    return NextResponse.json({ error: "Invalid state parameter" }, { status: 400 });
   }
 
   if (!shop || !code) {
-    logSecurityEvent({
-      event: 'oauth_callback_missing_params',
-      shop: shop || undefined,
-      severity: 'medium',
-    })
-
-    return NextResponse.json(
-      { error: 'Missing required parameters' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
   }
 
-  // Sanitize and validate shop domain
-  const cleanShop = sanitizeShopDomain(shop)
-  if (!cleanShop) {
-    logSecurityEvent({
-      event: 'oauth_callback_invalid_shop',
-      shop,
-      severity: 'high',
-    })
+  // Verify HMAC
+  const params = new URLSearchParams(url.search);
+  params.delete("hmac");
+  const sortedParams = Array.from(params.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, val]) => `${key}=${val}`)
+    .join("&");
+  
+  const hash = crypto
+    .createHmac("sha256", SHOPIFY_API_SECRET)
+    .update(sortedParams)
+    .digest("hex");
 
-    return NextResponse.json(
-      { error: 'Invalid shop domain' },
-      { status: 400 }
-    )
+  if (hash !== hmac) {
+    return NextResponse.json({ error: "Invalid HMAC" }, { status: 400 });
   }
 
+  // Exchange code for access token
   try {
-    // Exchange code for access token
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wholesale-cdlp-git-main-cdlps-projects.vercel.app'
-    const redirectUri = `${baseUrl}/auth/callback`
-    const accessToken = await exchangeCodeForToken(cleanShop, code, redirectUri)
+    const tokenRes = await fetch(`https://${shop}/admin/oauth/access_token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        client_id: SHOPIFY_API_KEY, 
+        client_secret: SHOPIFY_API_SECRET, 
+        code 
+      })
+    });
 
-    // Save shop and access token to database
-    await saveShop(cleanShop, accessToken)
+    if (!tokenRes.ok) {
+      throw new Error("Token exchange failed");
+    }
 
-    logSecurityEvent({
-      event: 'oauth_callback_success',
-      shop: cleanShop,
-      severity: 'low',
-    })
-
-    // Redirect to app
-    return NextResponse.redirect(new URL('/app', request.url))
-  } catch (error) {
-    console.error('OAuth callback error:', error)
+    const data = await tokenRes.json() as { access_token: string; scope: string };
     
-    logSecurityEvent({
-      event: 'oauth_callback_error',
-      shop: cleanShop,
-      severity: 'high',
-      details: { error: error instanceof Error ? error.message : 'Unknown error' },
-    })
+    // For session-based auth, we'll create a session cookie with shop info
+    // In production, you might want to store this in a secure session store
+    const res = NextResponse.redirect(`${APP_URL}/app?shop=${shop}`);
+    res.cookies.set("shopify_session", JSON.stringify({ shop, token: data.access_token }), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 // 24 hours
+    });
 
-    return NextResponse.json(
-      { error: 'Failed to complete OAuth flow' },
-      { status: 500 }
-    )
+    // Clear OAuth state cookies
+    res.cookies.delete("shopify_oauth_state");
+    res.cookies.delete("shopify_oauth_nonce");
+
+    return res;
+  } catch (error) {
+    console.error("OAuth callback error:", error);
+    return NextResponse.json({ error: "Failed to complete OAuth flow" }, { status: 500 });
   }
 }

@@ -78,7 +78,7 @@ export const RATE_LIMITS = {
 // Security headers for all responses
 export const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
+  'X-Frame-Options': 'ALLOW-FROM https://admin.shopify.com', // Allow Shopify embedding
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
@@ -89,7 +89,7 @@ export const SECURITY_HEADERS = {
     "style-src 'self' 'unsafe-inline' https://*.shopify.com",
     "img-src 'self' data: https: *.myshopify.com",
     "connect-src 'self' https://*.shopify.com",
-    "frame-ancestors 'self' https://*.shopify.com https://admin.shopify.com",
+    "frame-ancestors https://*.shopify.com https://admin.shopify.com",
     "form-action 'self'",
     "base-uri 'self'",
     "object-src 'none'",

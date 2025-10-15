@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'ALLOW-FROM https://admin.shopify.com',
           },
           {
             key: 'X-XSS-Protection',
@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://*.shopify.com",
               "img-src 'self' data: https: *.myshopify.com",
               "connect-src 'self' https://*.shopify.com",
-              "frame-ancestors 'self' https://*.shopify.com https://admin.shopify.com",
+              "frame-ancestors https://*.shopify.com https://admin.shopify.com",
               "form-action 'self'",
               "base-uri 'self'",
               "object-src 'none'",

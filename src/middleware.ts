@@ -1,105 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getShopFromHost } from '@/lib/shopify'
-import { SECURITY_HEADERS, logSecurityEvent, isAllowedIP } from '@/lib/security'
+import { jwtVerify } from 'jose'
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET!;
+const APP_URL = process.env.APP_URL!;
 
-  // Log all requests for security monitoring
-  logSecurityEvent({
-    event: 'request_received',
-    ip,
-    userAgent: request.headers.get('user-agent') || undefined,
-    severity: 'low',
-    details: {
-      pathname,
-      method: request.method,
-    },
-  })
+const protectedPaths = ['/app'];
 
-  // IP whitelist check for admin routes
-  if (pathname.startsWith('/admin') && !isAllowedIP(ip)) {
-    logSecurityEvent({
-      event: 'admin_access_denied',
-      ip,
-      severity: 'high',
-      details: { pathname },
-    })
-
-    return NextResponse.json(
-      { error: 'Access denied' },
-      { status: 403 }
-    )
-  }
-
-  // Skip middleware for static files and API routes that don't need auth
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // Skip middleware for public routes
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
+    pathname.startsWith('/api/auth') ||
     pathname.startsWith('/auth') ||
+    pathname === '/' ||
     pathname.includes('.')
   ) {
-    const response = NextResponse.next()
-    
-    // Add security headers to all responses
-    Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-      response.headers.set(key, value)
-    })
-    
-    return response
+    return NextResponse.next();
   }
 
-  // Extract shop from host header (for embedded apps)
-  const host = request.headers.get('host') || ''
-  const shop = getShopFromHost(host)
+  // Check if path requires authentication
+  const isProtected = protectedPaths.some(p => pathname.startsWith(p));
+  if (!isProtected) return NextResponse.next();
 
-  // For development, allow access without shop
-  if (process.env.NODE_ENV === 'development') {
-    const response = NextResponse.next()
-    Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-      response.headers.set(key, value)
-    })
-    return response
+  // Check for session token in Authorization header
+  const authHeader = request.headers.get("authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) {
+    // No token - redirect to auth
+    const shop = request.nextUrl.searchParams.get("shop") || "";
+    return NextResponse.redirect(`${APP_URL}/auth?shop=${shop}`);
   }
 
-  // If no shop is detected, this might be a direct access
-  if (!shop) {
-    logSecurityEvent({
-      event: 'direct_access_attempt',
-      ip,
-      severity: 'medium',
-      details: { pathname },
-    })
-    
-    const response = NextResponse.next()
-    Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-      response.headers.set(key, value)
-    })
-    return response
+  try {
+    // Verify session token
+    await jwtVerify(token, new TextEncoder().encode(SHOPIFY_API_SECRET));
+    return NextResponse.next();
+  } catch (e) {
+    // Invalid token - redirect to auth
+    const shop = request.nextUrl.searchParams.get("shop") || "";
+    return NextResponse.redirect(`${APP_URL}/auth?shop=${shop}`);
   }
-
-  // Add shop to headers for use in the app
-  const response = NextResponse.next()
-  response.headers.set('x-shop', shop)
-  
-  // Add security headers to all responses
-  Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
-    response.headers.set(key, value)
-  })
-  
-  return response
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-}
+  matcher: ['/app/:path*', '/api/secure/:path*'],
+};
