@@ -51,7 +51,19 @@ export async function GET(request: NextRequest) {
               }
             }
           `
-          const response = await client.graphql(shopQuery)
+          const response = await client.graphql<{
+            shop: {
+              name: string
+              email: string
+              domain: string
+              myshopifyDomain: string
+              plan: {
+                displayName: string
+              }
+              currencyCode: string
+              timezone: string
+            }
+          }>(shopQuery)
           shopData = response.data.shop
         }
       } catch (error) {

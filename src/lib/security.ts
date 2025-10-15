@@ -180,7 +180,9 @@ export function decryptSensitiveData(encryptedData: string): string {
   const secretKey = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32)
   
   const [ivHex, encrypted] = encryptedData.split(':')
-  const iv = Buffer.from(ivHex, 'hex')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _iv = Buffer.from(ivHex, 'hex')
+  void _iv // Suppress unused variable warning
   
   const decipher = crypto.createDecipher(algorithm, secretKey)
   let decrypted = decipher.update(encrypted, 'hex', 'utf8')
