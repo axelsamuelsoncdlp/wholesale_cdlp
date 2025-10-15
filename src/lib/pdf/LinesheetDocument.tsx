@@ -43,17 +43,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   productsGrid: {
+    flexDirection: 'column',
+  },
+  productRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    marginBottom: 10,
   },
   productCard: {
-    marginBottom: 8,
     marginRight: 2,
     padding: 3,
     minHeight: 160,
     textAlign: 'left',
-    width: '11%',
+    flex: 1,
   },
   productImage: {
     width: '100%',
@@ -79,6 +80,8 @@ const styles = StyleSheet.create({
   productDetails: {
     flexDirection: 'column',
     alignItems: 'flex-start',
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   detailRow: {
     flexDirection: 'row',
@@ -165,23 +168,19 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
     return styleMetafield?.node.value || product.handle.toUpperCase()
   }
 
-  // Calculate card width based on products per row (landscape A4 = 842px width)
-  const availableWidth = 842 - 40 // Total width minus padding
-  const marginBetweenCards = (config.productsPerRow - 1) * 2 // 2px margin between cards
-  const cardWidth = (availableWidth - marginBetweenCards) / config.productsPerRow
-  
+  // No need for dynamic width calculation since we're using flex
   const dynamicStyles = StyleSheet.create({
     productCard: {
       ...styles.productCard,
-      width: cardWidth,
     },
   })
 
-  // Split products into pages of 16 (8 per row, 2 rows)
+  // Split products into pages of exactly 16 (8 per row, 2 rows max)
   const productsPerPage = 16
   const pages = []
   for (let i = 0; i < products.length; i += productsPerPage) {
-    pages.push(products.slice(i, i + productsPerPage))
+    const pageProducts = products.slice(i, i + productsPerPage)
+    pages.push(pageProducts)
   }
 
   return (
@@ -209,8 +208,10 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
           {/* Products Grid */}
           <View style={styles.productsGrid}>
-            {pageProducts.map((product) => (
-            <View key={product.id} style={dynamicStyles.productCard}>
+            {Array.from({ length: Math.ceil(pageProducts.length / 8) }, (_, rowIndex) => (
+              <View key={rowIndex} style={styles.productRow}>
+                {pageProducts.slice(rowIndex * 8, (rowIndex + 1) * 8).map((product) => (
+                  <View key={product.id} style={dynamicStyles.productCard}>
               {/* Product Image */}
               {config.fieldToggles.images && product.images.edges.length > 0 && (
                 // eslint-disable-next-line jsx-a11y/alt-text
@@ -264,10 +265,11 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
                     <Text style={styles.detailValue}>{getProductColors(product)}</Text>
                   </View>
                 )}
+                  </View>
+                ))}
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
 
           {/* Footer */}
           <View style={styles.footer}>
