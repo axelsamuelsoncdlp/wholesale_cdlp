@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://*.shopify.com https://admin.shopify.com",
+            value: "frame-ancestors 'self' https://*.shopify.com https://admin.shopify.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.shopify.com; style-src 'self' 'unsafe-inline' https://*.shopify.com; img-src 'self' data: https:;",
           },
         ],
       },

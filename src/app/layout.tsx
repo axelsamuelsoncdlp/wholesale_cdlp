@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "CDLP Linesheet Generator",
   description: "Generate professional wholesale linesheets from your Shopify products",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
