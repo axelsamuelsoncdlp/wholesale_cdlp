@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, FileText, Copy, Trash2, Download } from 'lucide-react'
 import Link from 'next/link'
 import { getShop, ShopifyClient } from '@/lib/shopify'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, isCDLPStore, CDLP_STORE_CONFIG } from '@/lib/auth'
 import { headers } from 'next/headers'
 
 // Mock data for development
@@ -53,12 +53,12 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-light tracking-tight text-foreground">
-            Linesheet Generator
+            {isCDLPStore(shop) ? 'CDLP Linesheet Generator' : 'Linesheet Generator'}
           </h1>
           <p className="text-muted-foreground mt-2">
             {shopData 
-              ? `Connected to ${shopData.domain}.myshopify.com • ${productCount} products available`
-              : 'Create professional wholesale linesheets from your Shopify products'
+              ? `Connected to ${isCDLPStore(shop) ? CDLP_STORE_CONFIG.name : shopData.domain}.myshopify.com • ${productCount} products available`
+              : `Create professional wholesale linesheets from your ${isCDLPStore(shop) ? 'CDLP' : 'Shopify'} products`
             }
           </p>
         </div>
@@ -135,8 +135,33 @@ export default async function DashboardPage() {
         </Card>
       )}
 
+      {/* CDLP Store Status */}
+      {isCDLPStore(shop) && (
+        <Card className="mb-8 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+          <CardHeader>
+            <CardTitle className="text-lg text-blue-800 dark:text-blue-200">
+              🏢 CDLP Official Store
+            </CardTitle>
+            <CardDescription className="text-blue-700 dark:text-blue-300">
+              Connected to the official CDLP wholesale store
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                {shopData ? 'Connected' : 'Ready to Connect'}
+              </span>
+            </div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+              Access to CDLP product catalog and wholesale pricing
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Connection Status */}
-      {!shopData && (
+      {!shopData && !isCDLPStore(shop) && (
         <Card className="mb-8 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
           <CardHeader>
             <CardTitle className="text-lg text-yellow-800 dark:text-yellow-200">

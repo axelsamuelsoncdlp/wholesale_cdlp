@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +16,7 @@ export default function LoginPage() {
             <span className="text-2xl font-bold">CDLP Linesheet Generator</span>
           </div>
           <p className="text-muted-foreground">
-            Professional wholesale linesheet generator for Shopify stores
+            Professional wholesale linesheet generator for CDLP
           </p>
         </div>
 
@@ -31,12 +33,36 @@ export default function LoginPage() {
           </CardHeader>
         </Card>
 
-        {/* Login Form */}
+        {/* CDLP Store Quick Access */}
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+          <CardHeader>
+            <CardTitle className="text-lg text-green-800 dark:text-green-200">
+              CDLP Store Quick Access
+            </CardTitle>
+            <CardDescription className="text-green-700 dark:text-green-300">
+              One-click access to CDLP store linesheet generator
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => window.location.href = '/auth/cdlp-store'}
+            >
+              <Lock className="h-4 w-4 mr-2" />
+              Access CDLP Store Linesheet Generator
+            </Button>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
+              cdlpstore.myshopify.com
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Alternative Login Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Shopify Store Access</CardTitle>
+            <CardTitle>Other Store Access</CardTitle>
             <CardDescription>
-              Enter your Shopify store domain to access the linesheet generator
+              Access a different Shopify store
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -58,9 +84,9 @@ export default function LoginPage() {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" variant="outline">
                 <Lock className="h-4 w-4 mr-2" />
-                Access Linesheet Generator
+                Access Other Store
               </Button>
             </form>
 

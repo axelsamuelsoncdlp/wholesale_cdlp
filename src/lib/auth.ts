@@ -147,3 +147,27 @@ export function getShopifyInstallUrl(shop: string): string {
 
   return `https://${shop}.myshopify.com/admin/oauth/authorize?${params.toString()}`
 }
+
+/**
+ * CDLP Store Configuration
+ */
+export const CDLP_STORE_CONFIG = {
+  name: 'CDLP Store',
+  domain: 'cdlpstore',
+  fullDomain: 'cdlpstore.myshopify.com',
+  description: 'Official CDLP wholesale linesheet generator',
+} as const
+
+/**
+ * Get CDLP store authentication URL
+ */
+export function getCDLPStoreAuthUrl(): string {
+  return getShopifyInstallUrl(CDLP_STORE_CONFIG.domain)
+}
+
+/**
+ * Check if shop is CDLP store
+ */
+export function isCDLPStore(shop: string): boolean {
+  return shop === CDLP_STORE_CONFIG.domain || shop === CDLP_STORE_CONFIG.fullDomain
+}
