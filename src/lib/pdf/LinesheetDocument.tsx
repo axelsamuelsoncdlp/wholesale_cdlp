@@ -212,63 +212,65 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
               <View key={rowIndex} style={styles.productRow}>
                 {pageProducts.slice(rowIndex * 8, (rowIndex + 1) * 8).map((product) => (
                   <View key={product.id} style={dynamicStyles.productCard}>
-              {/* Product Image */}
-              {config.fieldToggles.images && product.images.edges.length > 0 && (
-                // eslint-disable-next-line jsx-a11y/alt-text
-                <Image
-                  style={styles.productImage}
-                  src={product.images.edges[0].node.url}
-                />
-              )}
+                    {/* Product Image */}
+                    {config.fieldToggles.images && product.images.edges.length > 0 && (
+                      // eslint-disable-next-line jsx-a11y/alt-text
+                      <Image
+                        style={styles.productImage}
+                        src={product.images.edges[0].node.url}
+                      />
+                    )}
 
-              {/* Product Details */}
-              <View style={styles.productDetails}>
-                {config.fieldToggles.productName && (
-                  <Text style={styles.productTitle}>{product.title}</Text>
-                )}
-                
-                {config.fieldToggles.styleNumber && (
-                  <Text style={styles.productHandle}>
-                    Style: {getProductStyleNumber(product)}
-                  </Text>
-                )}
+                    {/* Product Details */}
+                    <View style={styles.productDetails}>
+                      {config.fieldToggles.productName && (
+                        <Text style={styles.productTitle}>{product.title}</Text>
+                      )}
+                      
+                      {config.fieldToggles.styleNumber && (
+                        <Text style={styles.productHandle}>
+                          Style: {getProductStyleNumber(product)}
+                        </Text>
+                      )}
 
-                {config.fieldToggles.season && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Season:</Text>
-                    <Text style={styles.detailValue}>{getProductSeason(product)}</Text>
+                      {config.fieldToggles.season && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Season:</Text>
+                          <Text style={styles.detailValue}>{getProductSeason(product)}</Text>
+                        </View>
+                      )}
+
+                      {config.fieldToggles.wholesalePrice && (
+                        <Text style={styles.price}>
+                          Wholesale: {getProductPrice(product)}
+                        </Text>
+                      )}
+
+                      {config.fieldToggles.msrpPrice && (
+                        <Text style={styles.price}>
+                          M.S.R.P.: {getProductPrice(product)}
+                        </Text>
+                      )}
+
+                      {config.fieldToggles.sizes && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Sizes:</Text>
+                          <Text style={styles.detailValue}>{getProductSizes(product)}</Text>
+                        </View>
+                      )}
+
+                      {config.fieldToggles.colors && (
+                        <View style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Colors:</Text>
+                          <Text style={styles.detailValue}>{getProductColors(product)}</Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
-                )}
-
-                {config.fieldToggles.wholesalePrice && (
-                  <Text style={styles.price}>
-                    Wholesale: {getProductPrice(product)}
-                  </Text>
-                )}
-
-                {config.fieldToggles.msrpPrice && (
-                  <Text style={styles.price}>
-                    M.S.R.P.: {getProductPrice(product)}
-                  </Text>
-                )}
-
-                {config.fieldToggles.sizes && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Sizes:</Text>
-                    <Text style={styles.detailValue}>{getProductSizes(product)}</Text>
-                  </View>
-                )}
-
-                {config.fieldToggles.colors && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Colors:</Text>
-                    <Text style={styles.detailValue}>{getProductColors(product)}</Text>
-                  </View>
-                )}
+                ))}
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
 
         {/* Footer */}
         <View style={styles.footer}>
