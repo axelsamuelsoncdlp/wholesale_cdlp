@@ -163,7 +163,7 @@ const ProductCard: React.FC<{ item: LinesheetItem; config: LinesheetConfig }> = 
   )
 }
 
-const LinesheetDocument: React.FC<LinesheetDocumentProps> = ({ items, config }) => {
+export const LinesheetDocument: React.FC<LinesheetDocumentProps> = ({ items, config }) => {
   // Split items into two columns
   const leftColumnItems = items.filter((_, index) => index % 2 === 0)
   const rightColumnItems = items.filter((_, index) => index % 2 === 1)
