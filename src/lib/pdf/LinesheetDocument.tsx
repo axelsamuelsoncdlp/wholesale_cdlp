@@ -265,11 +265,11 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
                     <Text style={styles.detailValue}>{getProductColors(product)}</Text>
                   </View>
                 )}
-                  </View>
-                ))}
               </View>
-            ))}
-          </View>
+            </View>
+          ))}
+        </View>
+      ))}
 
           {/* Footer */}
           <View style={styles.footer}>
