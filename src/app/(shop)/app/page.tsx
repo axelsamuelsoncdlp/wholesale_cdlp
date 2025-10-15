@@ -49,11 +49,12 @@ export default function DashboardPage() {
         ])
 
         if (!shopResponse.ok) {
-          throw new Error('Failed to fetch shop data')
+          console.warn('Failed to fetch shop data, continuing without shop info')
+          setShopData(null)
+        } else {
+          const shopDataResult = await shopResponse.json()
+          setShopData(shopDataResult || null)
         }
-
-        const shopDataResult = await shopResponse.json()
-        setShopData(shopDataResult.shop)
 
         if (productsResponse.ok) {
           // Get total count by fetching first page with larger limit

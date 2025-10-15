@@ -64,7 +64,24 @@ export async function GET(request: NextRequest) {
               timezone: string
             }
           }>(shopQuery)
-          shopData = response.data.shop
+          
+          console.log('Shop GraphQL response:', { 
+            hasData: !!response.data,
+            hasErrors: !!response.errors,
+            errors: response.errors 
+          })
+          
+          if (response.errors) {
+            console.error('Shop GraphQL errors:', response.errors)
+            throw new Error(`GraphQL errors: ${response.errors.map(e => e.message).join(', ')}`)
+          }
+          
+          if (response.data && response.data.shop) {
+            shopData = response.data.shop
+          } else {
+            console.error('No shop data in response:', response)
+            throw new Error('No shop data returned from GraphQL')
+          }
         }
       } catch (error) {
         console.error('Error fetching shop data:', error)
