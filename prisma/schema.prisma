@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  domain      String   @unique
+  accessToken String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  presets     LinesheetPreset[]
+
+  @@map("shops")
+}
+
+model LinesheetPreset {
+  id            String   @id @default(cuid())
+  shopId        String
+  name          String
+  currency      String   // "USD", "EUR", "SEK"
+  priceSource   String   // "price_list", "metafield", "variant_price"
+  season        String?
+  headerTitle   String?
+  layoutStyle   String   @default("two-column-compact")
+  products      Json     // [{productId, variantIds?, order}]
+  coverImageUrl String?
+  fieldToggles  Json     // {styleNumber, season, wholesale, msrp, sizes, color}
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@map("linesheet_presets")
+}
