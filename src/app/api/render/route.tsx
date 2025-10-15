@@ -18,16 +18,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate PDF
-    const pdfBuffer = await pdf(
+    const pdfStream = await pdf(
       <LinesheetDocument products={products} config={config} />
-    ).toBuffer()
+    ).toBlob()
+
+    // Convert blob to buffer for Content-Length
+    const arrayBuffer = await pdfStream.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
     // Return PDF as response
-    return new NextResponse(pdfBuffer as unknown as BodyInit, {
+    return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="linesheet-${config.season}-${Date.now()}.pdf"`,
-        'Content-Length': pdfBuffer.length.toString(),
+        'Content-Length': buffer.length.toString(),
       },
     })
   } catch (error) {
