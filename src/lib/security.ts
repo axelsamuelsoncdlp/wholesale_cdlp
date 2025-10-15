@@ -164,7 +164,6 @@ export function encryptSensitiveData(data: string): string {
   const algorithm = 'aes-256-gcm'
   const secretKey = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32)
   // IV would be generated but not used in current implementation
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _iv = crypto.randomBytes(16) // IV not used in current implementation
   void _iv // Suppress unused variable warning
   
@@ -180,7 +179,6 @@ export function decryptSensitiveData(encryptedData: string): string {
   const secretKey = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32)
   
   const [ivHex, encrypted] = encryptedData.split(':')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _iv = Buffer.from(ivHex, 'hex')
   void _iv // Suppress unused variable warning
   

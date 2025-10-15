@@ -8,16 +8,15 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Search, ShoppingCart, ArrowRight, X, Loader2, Package } from 'lucide-react'
 import Link from 'next/link'
 import { ShopifyProduct } from '@/lib/shopify'
-import { useAuth } from '@/contexts/AuthContext'
-import { useAuthenticatedFetch } from '@/lib/apiClient'
+// import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
+// import { useAuthenticatedFetch } from '@/lib/apiClient' // Temporarily disabled for testing
 
 interface ProductWithSelection extends ShopifyProduct {
   selected: boolean
 }
 
 export default function ProductsPage() {
-  const { isLoading: authLoading } = useAuth()
-  const { authenticatedFetch } = useAuthenticatedFetch()
+  // Temporarily disabled authentication for testing
   
   const [products, setProducts] = useState<ProductWithSelection[]>([])
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
@@ -25,35 +24,13 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch products from API
+  // Fetch products from API - temporarily disabled for testing
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (authLoading) return
-      
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        const response = await authenticatedFetch('/api/products')
-        const data = await response.json()
-        
-        // Transform Shopify products to include selection state
-        const productsWithSelection = data.edges.map((edge: { node: ShopifyProduct }) => ({
-          ...edge.node,
-          selected: false,
-        }))
-        
-        setProducts(productsWithSelection)
-      } catch (err) {
-        console.error('Error fetching products:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch products')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchProducts()
-  }, [authLoading, authenticatedFetch])
+    // Mock products for testing
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 1000)
+  }, [])
 
   // Filter products based on search query
   const filteredProducts = products.filter(product =>
@@ -98,17 +75,6 @@ export default function ProductsPage() {
   }
 
   // Temporarily disabled authentication for testing
-  // Show loading state if auth is still loading
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   // Show loading products
   if (isLoading) {

@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Download, Save, Eye, Settings, Loader2 } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+// import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 
 export default function LayoutPage() {
-  const { isLoading: authLoading } = useAuth()
+  // Temporarily disabled authentication for testing
   
   const [config, setConfig] = useState({
     headerTitle: 'CDLP SS26 MENS',
@@ -38,17 +38,6 @@ export default function LayoutPage() {
   }
 
   // Temporarily disabled authentication for testing
-  // Show loading state if auth is still loading
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">

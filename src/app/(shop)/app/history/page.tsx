@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Download, FileText, Calendar, HardDrive, Loader2 } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+// import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 
 // Mock history data
 const mockHistory = [
@@ -34,20 +34,7 @@ const mockHistory = [
 ]
 
 export default function HistoryPage() {
-  const { isLoading: authLoading } = useAuth()
-
   // Temporarily disabled authentication for testing
-  // Show loading state if auth is still loading
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">

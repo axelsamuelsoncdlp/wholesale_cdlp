@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Plus, FileText, Copy, Trash2, Download, Loader2, Store } from 'lucide-react'
 import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { useAuthenticatedFetch } from '@/lib/apiClient'
+// import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
+// import { useAuthenticatedFetch } from '@/lib/apiClient' // Temporarily disabled for testing
 
 // Mock data for development
 const mockPresets = [
@@ -34,8 +34,7 @@ const mockPresets = [
 ]
 
 export default function DashboardPage() {
-  const { isLoading: authLoading, shop } = useAuth()
-  const { authenticatedFetch } = useAuthenticatedFetch()
+  // Temporarily disabled authentication for testing
   
   const [presets, setPresets] = useState(mockPresets)
   // const [shopData] = useState<{ name?: string; domain?: string } | null>(null) // Shop data not used in current implementation
@@ -43,30 +42,14 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch shop data
+  // Fetch shop data - temporarily disabled for testing
   useEffect(() => {
-    const fetchShopData = async () => {
-      if (authLoading) return
-      
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        // Fetch products count
-        const productsResponse = await authenticatedFetch('/api/products?limit=1')
-        const productsData = await productsResponse.json()
-        
-        setProductCount(productsData.edges?.length || 0)
-      } catch (err) {
-        console.error('Error fetching shop data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch shop data')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchShopData()
-  }, [authLoading, authenticatedFetch])
+    // Mock data for testing
+    setTimeout(() => {
+      setProductCount(42) // Mock product count
+      setIsLoading(false)
+    }, 1000)
+  }, [])
 
   const handleDeletePreset = (id: string) => {
     setPresets(prev => prev.filter(preset => preset.id !== id))
@@ -87,17 +70,6 @@ export default function DashboardPage() {
   }
 
   // Temporarily disabled authentication for testing
-  // Show loading state if auth is still loading
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-8">
@@ -108,12 +80,10 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mt-2">
             Welcome to CDLP Linesheet Generator
           </p>
-          {shop && (
-            <div className="flex items-center mt-2 text-sm text-muted-foreground">
-              <Store className="h-4 w-4 mr-1" />
-              Connected to {shop}
-            </div>
-          )}
+          <div className="flex items-center mt-2 text-sm text-muted-foreground">
+            <Store className="h-4 w-4 mr-1" />
+            Connected to cdlpstore (testing mode)
+          </div>
         </div>
         <Link href="/app/products">
           <Button className="gap-2">
