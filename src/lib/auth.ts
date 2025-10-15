@@ -3,7 +3,7 @@
  * Ensures only authenticated Shopify stores can access the app
  */
 
-import { getShop } from './shopify'
+import { getShop, getStaticAccessToken } from './shopify'
 import { logSecurityEvent } from './security'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -47,7 +47,25 @@ export async function checkAuthentication(): Promise<AuthResult> {
       }
     }
 
-    // Check if shop is authenticated in database
+    // Check if we have a static access token (Custom App)
+    const staticToken = getStaticAccessToken()
+    if (staticToken) {
+      // Using static token - no database check needed
+      logSecurityEvent({
+        event: 'static_token_authentication',
+        shop,
+        ip: ip || undefined,
+        userAgent: userAgent || undefined,
+        severity: 'low',
+      })
+
+      return {
+        isAuthenticated: true,
+        shop,
+      }
+    }
+
+    // Fallback to database check for OAuth apps
     const shopData = await getShop(shop)
     if (!shopData) {
       logSecurityEvent({

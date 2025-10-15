@@ -287,3 +287,21 @@ export function getShopFromHost(host: string): string {
   const match = host.match(/^([^.]+)\.myshopify\.com$/)
   return match ? match[1] : host
 }
+
+/**
+ * Get static access token from environment variables (for Custom App)
+ */
+export function getStaticAccessToken(): string | null {
+  return process.env.SHOPIFY_ACCESS_TOKEN || null
+}
+
+/**
+ * Create Shopify client using static access token
+ */
+export function createStaticShopifyClient(shop: string): ShopifyClient | null {
+  const accessToken = getStaticAccessToken()
+  if (!accessToken) {
+    return null
+  }
+  return new ShopifyClient(shop, accessToken)
+}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getShop, ShopifyClient } from '@/lib/shopify'
+import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
 import { headers } from 'next/headers'
 import { logSecurityEvent, sanitizeInput } from '@/lib/security'
 import { checkAuthentication } from '@/lib/auth'
@@ -27,20 +27,26 @@ export async function GET(request: NextRequest) {
 
     const shop = authResult.shop!
 
-    // Get shop data from database
-    const shopData = await getShop(shop)
-    if (!shopData) {
-      logSecurityEvent({
-        event: 'products_api_shop_not_found',
-        shop,
-        ip,
-        severity: 'high',
-      })
+    // Try static token first (Custom App)
+    let client = createStaticShopifyClient(shop)
+    
+    // Fallback to database token (OAuth app)
+    if (!client) {
+      const shopData = await getShop(shop)
+      if (!shopData) {
+        logSecurityEvent({
+          event: 'products_api_shop_not_found',
+          shop,
+          ip,
+          severity: 'high',
+        })
 
-      return NextResponse.json(
-        { error: 'Shop data not found' },
-        { status: 404 }
-      )
+        return NextResponse.json(
+          { error: 'Shop data not found' },
+          { status: 404 }
+        )
+      }
+      client = new ShopifyClient(shop, shopData.accessToken)
     }
 
     // Validate and sanitize input parameters
@@ -57,11 +63,10 @@ export async function GET(request: NextRequest) {
       shop,
       ip,
       severity: 'low',
-      details: { first, hasAfter: !!after },
+      details: { first, hasAfter: !!after, usingStaticToken: !!(await import('@/lib/shopify')).getStaticAccessToken() },
     })
 
-    // Create Shopify client and fetch products
-    const client = new ShopifyClient(shop, shopData.accessToken)
+    // Fetch products
     const products = await client.getProducts(first, after)
 
     return NextResponse.json(products)

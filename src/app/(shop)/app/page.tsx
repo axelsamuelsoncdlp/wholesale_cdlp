@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Plus, FileText, Copy, Trash2, Download } from 'lucide-react'
 import Link from 'next/link'
-import { getShop, ShopifyClient } from '@/lib/shopify'
+import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
 import { requireAuth, isCDLPStore, CDLP_STORE_CONFIG } from '@/lib/auth'
 import { headers } from 'next/headers'
 
@@ -34,18 +34,27 @@ export default async function DashboardPage() {
   let shopData = null
   let productCount = 0
 
-  if (shop && shop !== 'development-store') {
-    try {
-      shopData = await getShop(shop)
-      if (shopData) {
-        const client = new ShopifyClient(shop, shopData.accessToken)
-        const products = await client.getProducts(10) // Get first 10 products
-        productCount = products.edges.length
+      if (shop && shop !== 'development-store') {
+        try {
+          // Try static token first (Custom App)
+          let client = createStaticShopifyClient(shop)
+          
+          if (!client) {
+            // Fallback to database token (OAuth app)
+            shopData = await getShop(shop)
+            if (shopData) {
+              client = new ShopifyClient(shop, shopData.accessToken)
+            }
+          }
+          
+          if (client) {
+            const products = await client.getProducts(10) // Get first 10 products
+            productCount = products.edges.length
+          }
+        } catch (error) {
+          console.error('Error fetching shop data:', error)
+        }
       }
-    } catch (error) {
-      console.error('Error fetching shop data:', error)
-    }
-  }
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
