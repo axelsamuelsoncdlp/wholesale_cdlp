@@ -8,12 +8,12 @@ export async function GET(request: NextRequest) {
   
   try {
     // Check authentication
-    const authResult = await checkAuthentication(request)
-    if (!authResult.authenticated) {
+    const authResult = await checkAuthentication()
+    if (!authResult.isAuthenticated) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { shop } = authResult
+    const shop = authResult.shop
 
     // Log the request
     logSecurityEvent({

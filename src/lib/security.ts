@@ -163,7 +163,7 @@ export function isAllowedIP(ip: string): boolean {
 export function encryptSensitiveData(data: string): string {
   const algorithm = 'aes-256-gcm'
   const secretKey = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32)
-  // IV is generated but not used in current implementation
+  // IV would be generated but not used in current implementation
   
   const cipher = crypto.createCipher(algorithm, secretKey)
   let encrypted = cipher.update(data, 'utf8', 'hex')
