@@ -14,31 +14,33 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    borderBottom: '1pt solid #000000',
     paddingBottom: 10,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   logo: {
     height: 40,
     width: 'auto',
     marginBottom: 10,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'left',
-    marginBottom: 5,
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: 2,
   },
   subtitle: {
-    fontSize: 16,
-    textAlign: 'left',
+    fontSize: 18,
+    textAlign: 'center',
     marginBottom: 5,
+    fontWeight: 'bold',
   },
   season: {
-    fontSize: 12,
-    textAlign: 'left',
-    fontStyle: 'italic',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'normal',
+    fontWeight: 'bold',
   },
   productsGrid: {
     flexDirection: 'row',
@@ -47,28 +49,30 @@ const styles = StyleSheet.create({
   },
   productCard: {
     marginBottom: 15,
-    marginRight: 10,
+    marginRight: 8,
     padding: 8,
-    minHeight: 200,
+    minHeight: 220,
     textAlign: 'left',
+    width: '12%',
   },
   productImage: {
     width: '100%',
-    height: 120,
+    height: 140,
     marginBottom: 8,
     objectFit: 'contain',
     alignSelf: 'center',
   },
   productTitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 3,
     textAlign: 'left',
+    lineHeight: 1.2,
   },
   productHandle: {
     fontSize: 8,
-    color: '#666666',
-    marginBottom: 6,
+    color: '#000000',
+    marginBottom: 3,
     textAlign: 'left',
   },
   productDetails: {
@@ -84,16 +88,18 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 7,
     fontWeight: 'bold',
-    marginRight: 4,
+    marginRight: 2,
   },
   detailValue: {
     fontSize: 7,
+    color: '#000000',
   },
   price: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'left',
+    marginBottom: 1,
   },
   footer: {
     position: 'absolute',
@@ -159,7 +165,8 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
   }
 
   // Calculate card width based on products per row (landscape A4 = 842px width)
-  const cardWidth = `${(842 - 40 - (config.productsPerRow - 1) * 10) / config.productsPerRow}px`
+  const availableWidth = 842 - 40 // Total width minus padding
+  const cardWidth = availableWidth / config.productsPerRow
   
   const dynamicStyles = StyleSheet.create({
     productCard: {
@@ -183,9 +190,6 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           <Text style={styles.subtitle}>{config.subheader}</Text>
           <Text style={styles.season}>{config.season}</Text>
         </View>
-
-        {/* Line above products */}
-        <View style={{ borderBottom: '1pt solid #000000', marginBottom: 15 }} />
 
         {/* Products Grid */}
         <View style={styles.productsGrid}>
@@ -220,21 +224,15 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
                 )}
 
                 {config.fieldToggles.wholesalePrice && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Wholesale:</Text>
-                    <Text style={[styles.detailValue, styles.price]}>
-                      {getProductPrice(product)}
-                    </Text>
-                  </View>
+                  <Text style={styles.price}>
+                    Wholesale: {getProductPrice(product)}
+                  </Text>
                 )}
 
                 {config.fieldToggles.msrpPrice && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>MSRP:</Text>
-                    <Text style={[styles.detailValue, styles.price]}>
-                      {getProductPrice(product)}
-                    </Text>
-                  </View>
+                  <Text style={styles.price}>
+                    M.S.R.P.: {getProductPrice(product)}
+                  </Text>
                 )}
 
                 {config.fieldToggles.sizes && (
@@ -255,13 +253,18 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           ))}
         </View>
 
-        {/* Line below products */}
-        <View style={{ borderBottom: '1pt solid #000000', marginTop: 15 }} />
-
         {/* Footer */}
-        <Text style={styles.footer}>
-          Generated on {new Date().toLocaleDateString()} • {products.length} products
-        </Text>
+        <View style={styles.footer}>
+          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 20 }}>
+            Page: 2 of 16
+          </Text>
+          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 200 }}>
+            {config.headerTitle}
+          </Text>
+          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, right: 20 }}>
+            POWERED BY NUORDER
+          </Text>
+        </View>
       </Page>
     </Document>
   )
