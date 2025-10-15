@@ -171,7 +171,7 @@ export default function PreviewHtmlPage() {
             {/* Products Grid */}
             <div className={`grid gap-6`} style={{ gridTemplateColumns: `repeat(${config.productsPerRow}, 1fr)` }}>
               {selectedProducts.map((product) => (
-                <div key={product.id} className="border rounded p-4">
+                <div key={product.id}>
                   {/* Product Image */}
                   {config.fieldToggles.images && product.images.edges.length > 0 && (
                     <div className="mb-3">
