@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Download, FileText, Calendar, HardDrive, Loader2 } from 'lucide-react'
+import { Download, FileText, Calendar, HardDrive } from 'lucide-react'
 // import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 
 // Mock history data

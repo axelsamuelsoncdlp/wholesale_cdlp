@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Save, Eye, Settings, Loader2 } from 'lucide-react'
+import { Download, Save, Eye, Settings } from 'lucide-react'
 // import { useAuth } from '@/contexts/AuthContext' // Temporarily disabled for testing
 
 export default function LayoutPage() {

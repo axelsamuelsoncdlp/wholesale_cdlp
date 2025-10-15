@@ -23,7 +23,13 @@ interface ShopData {
 export default function DashboardPage() {
   // Temporarily disabled authentication for testing
   
-  const [presets, setPresets] = useState<any[]>([]) // Will be empty for now - no presets saved yet
+  const [presets, setPresets] = useState<Array<{
+    id: string
+    name: string
+    productCount: number
+    lastModified: string
+    status: 'draft' | 'published'
+  }>>([]) // Will be empty for now - no presets saved yet
   const [shopData, setShopData] = useState<ShopData | null>(null)
   const [productCount, setProductCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -50,7 +56,6 @@ export default function DashboardPage() {
         setShopData(shopDataResult.shop)
 
         if (productsResponse.ok) {
-          const productsData = await productsResponse.json()
           // Get total count by fetching first page with larger limit
           const countResponse = await fetch('/api/products?first=250')
           if (countResponse.ok) {
