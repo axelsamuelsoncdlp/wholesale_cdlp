@@ -97,45 +97,15 @@ export default function ProductsPage() {
     setSelectedProducts([])
   }
 
-  // Show authentication loading
+  // Temporarily disabled authentication for testing
+  // Show loading state if auth is still loading
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Authenticating...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
-    )
-  }
-
-  // Show authentication error
-  if (authError || !isAuthenticated) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-light tracking-tight">Product Selection</h1>
-          <p className="text-muted-foreground mt-2">
-            Choose products for your linesheet
-          </p>
-        </div>
-
-        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-          <CardHeader>
-            <CardTitle className="text-red-800 dark:text-red-200 flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Authentication Required
-            </CardTitle>
-            <CardDescription className="text-red-700 dark:text-red-300">
-              {authError || 'You must be logged in to Shopify to access this page.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Please access this app through your Shopify Admin panel.
-            </p>
-          </CardContent>
-        </Card>
       </div>
     )
   }
