@@ -16,6 +16,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottom: '1pt solid #000000',
     paddingBottom: 10,
+    textAlign: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 40,
+    marginBottom: 10,
+    alignSelf: 'center',
   },
   title: {
     fontSize: 24,
@@ -36,14 +43,15 @@ const styles = StyleSheet.create({
   productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   productCard: {
-    width: '48%',
     marginBottom: 15,
+    marginRight: 10,
     border: '1pt solid #E5E5E5',
     borderRadius: 5,
-    padding: 10,
+    padding: 8,
+    minHeight: 200,
   },
   productImage: {
     width: '100%',
@@ -144,11 +152,27 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
     return styleMetafield?.node.value || product.handle.toUpperCase()
   }
 
+  // Calculate card width based on products per row (landscape A4 = 842px width)
+  const cardWidth = `${(842 - 40 - (config.productsPerRow - 1) * 10) / config.productsPerRow}px`
+  
+  const dynamicStyles = StyleSheet.create({
+    productCard: {
+      ...styles.productCard,
+      width: cardWidth,
+    },
+  })
+
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {config.logoUrl && (
+            <Image
+              style={styles.logo}
+              src={config.logoUrl}
+            />
+          )}
           <Text style={styles.title}>{config.headerTitle}</Text>
           <Text style={styles.subtitle}>{config.subheader}</Text>
           <Text style={styles.season}>{config.season}</Text>
@@ -157,7 +181,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
         {/* Products Grid */}
         <View style={styles.productsGrid}>
           {products.map((product) => (
-            <View key={product.id} style={styles.productCard}>
+            <View key={product.id} style={dynamicStyles.productCard}>
               {/* Product Image */}
               {config.fieldToggles.images && product.images.edges.length > 0 && (
                 // eslint-disable-next-line jsx-a11y/alt-text

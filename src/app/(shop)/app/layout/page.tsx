@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Eye, Loader2 } from 'lucide-react'
+import { Download, Eye, Loader2, Upload, X } from 'lucide-react'
 import { useLinesheet } from '@/contexts/LinesheetContext'
 import Link from 'next/link'
 
@@ -25,6 +25,22 @@ export default function LayoutPage() {
         [field]: !config.fieldToggles[field]
       }
     })
+  }
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        updateConfig({ logoUrl: result })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveLogo = () => {
+    updateConfig({ logoUrl: undefined })
   }
 
   const handleGeneratePDF = async () => {
@@ -80,16 +96,10 @@ export default function LayoutPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Link href="/app/preview">
-            <Button variant="outline" className="gap-2">
-              <Eye className="h-4 w-4" />
-              PDF Preview
-            </Button>
-          </Link>
           <Link href="/app/preview-html">
             <Button variant="outline" className="gap-2">
               <Eye className="h-4 w-4" />
-              HTML Preview
+              Preview
             </Button>
           </Link>
           <Button 
@@ -167,7 +177,46 @@ export default function LayoutPage() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Logo Upload */}
+          <div>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Logo
+            </label>
+            <div className="mt-2 space-y-3">
+              {config.logoUrl ? (
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={config.logoUrl} 
+                    alt="Logo" 
+                    className="h-12 w-auto object-contain border rounded"
+                  />
+                  <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    id="logo-upload"
+                  />
+                  <label
+                    htmlFor="logo-upload"
+                    className="flex items-center justify-center w-full h-12 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Logo
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="currency" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Currency
@@ -191,6 +240,23 @@ export default function LayoutPage() {
                 placeholder="e.g., SS26"
                 className="mt-1"
               />
+            </div>
+            <div>
+              <label htmlFor="productsPerRow" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Products Per Row
+              </label>
+              <select
+                id="productsPerRow"
+                value={config.productsPerRow}
+                onChange={(e) => handleConfigChange('productsPerRow', parseInt(e.target.value))}
+                className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value={4}>4 products</option>
+                <option value={6}>6 products</option>
+                <option value={8}>8 products (default)</option>
+                <option value={10}>10 products</option>
+                <option value={12}>12 products</option>
+              </select>
             </div>
           </div>
           <div>
@@ -245,16 +311,10 @@ export default function LayoutPage() {
         </Link>
         
         <div className="flex gap-3">
-          <Link href="/app/preview">
-            <Button variant="outline" className="gap-2">
-              <Eye className="h-4 w-4" />
-              PDF Preview
-            </Button>
-          </Link>
           <Link href="/app/preview-html">
             <Button variant="outline" className="gap-2">
               <Eye className="h-4 w-4" />
-              HTML Preview
+              Preview
             </Button>
           </Link>
           <Button 

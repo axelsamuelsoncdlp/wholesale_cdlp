@@ -9,6 +9,8 @@ export interface LinesheetConfig {
   currency: string
   priceSource: 'price_list' | 'metafield' | 'variant_price'
   season: string
+  productsPerRow: number
+  logoUrl?: string
   fieldToggles: {
     productName: boolean
     styleNumber: boolean
@@ -39,6 +41,8 @@ const defaultConfig: LinesheetConfig = {
   currency: 'USD',
   priceSource: 'price_list',
   season: 'SS26',
+  productsPerRow: 8,
+  logoUrl: undefined,
   fieldToggles: {
     productName: true,
     styleNumber: true,

@@ -153,13 +153,23 @@ export default function PreviewHtmlPage() {
           <div className="bg-white p-8 border rounded-lg" style={{ minHeight: '800px' }}>
             {/* Header */}
             <div className="text-center border-b pb-4 mb-6">
+              {config.logoUrl && (
+                <div className="mb-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={config.logoUrl} 
+                    alt="Logo" 
+                    className="h-16 w-auto mx-auto object-contain"
+                  />
+                </div>
+              )}
               <h1 className="text-2xl font-bold mb-2">{config.headerTitle}</h1>
               <h2 className="text-lg mb-2">{config.subheader}</h2>
               <p className="text-sm italic">{config.season}</p>
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className={`grid gap-6`} style={{ gridTemplateColumns: `repeat(${config.productsPerRow}, 1fr)` }}>
               {selectedProducts.map((product) => (
                 <div key={product.id} className="border rounded p-4">
                   {/* Product Image */}
