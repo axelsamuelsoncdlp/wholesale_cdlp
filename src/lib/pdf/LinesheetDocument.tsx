@@ -270,18 +270,18 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           ))}
         </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 20 }}>
-              Page: {pageIndex + 1} of {pages.length}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 200 }}>
-              {config.headerTitle}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, right: 20 }}>
-              POWERED BY NUORDER
-            </Text>
-          </View>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 20 }}>
+            Page: {pageIndex + 1} of {pages.length}
+          </Text>
+          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 200 }}>
+            {config.headerTitle}
+          </Text>
+          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, right: 20 }}>
+            POWERED BY NUORDER
+          </Text>
+        </View>
         </Page>
       ))}
     </Document>
