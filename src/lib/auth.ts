@@ -135,7 +135,9 @@ export function isEmbeddedApp(): boolean {
  */
 export function getShopifyInstallUrl(shop: string): string {
   const clientId = process.env.SHOPIFY_API_KEY!
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+  // Fallback to hardcoded URL if environment variable is not set
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wholesale-cdlp-git-main-cdlps-projects.vercel.app'
+  const redirectUri = `${baseUrl}/auth/callback`
   const scopes = 'read_products,read_product_listings'
   
   const params = new URLSearchParams({

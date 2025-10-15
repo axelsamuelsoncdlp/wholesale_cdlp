@@ -69,7 +69,8 @@ export async function GET(request: NextRequest) {
 
   try {
     // Exchange code for access token
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://wholesale-cdlp-git-main-cdlps-projects.vercel.app'
+    const redirectUri = `${baseUrl}/auth/callback`
     const accessToken = await exchangeCodeForToken(cleanShop, code, redirectUri)
 
     // Save shop and access token to database
