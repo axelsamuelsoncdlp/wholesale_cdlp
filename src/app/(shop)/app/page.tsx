@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, FileText, Copy, Trash2, Download, AlertCircle, Loader2, Store } from 'lucide-react'
+import { Plus, FileText, Copy, Trash2, Download, Loader2, Store } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAuthenticatedFetch } from '@/lib/apiClient'
@@ -34,7 +34,7 @@ const mockPresets = [
 ]
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading: authLoading, error: authError, shop } = useAuth()
+  const { isLoading: authLoading, shop } = useAuth()
   const { authenticatedFetch } = useAuthenticatedFetch()
   
   const [presets, setPresets] = useState(mockPresets)

@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Download, Save, Eye, Settings, AlertCircle, Loader2 } from 'lucide-react'
+import { Download, Save, Eye, Settings, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function LayoutPage() {
-  const { isAuthenticated, isLoading: authLoading, error: authError } = useAuth()
+  const { isLoading: authLoading } = useAuth()
   
   const [config, setConfig] = useState({
     headerTitle: 'CDLP SS26 MENS',

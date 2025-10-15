@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Download, FileText, Calendar, HardDrive, AlertCircle, Loader2 } from 'lucide-react'
+import { Download, FileText, Calendar, HardDrive, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 // Mock history data
@@ -34,7 +34,7 @@ const mockHistory = [
 ]
 
 export default function HistoryPage() {
-  const { isAuthenticated, isLoading: authLoading, error: authError } = useAuth()
+  const { isLoading: authLoading } = useAuth()
 
   // Temporarily disabled authentication for testing
   // Show loading state if auth is still loading

@@ -164,6 +164,8 @@ export function encryptSensitiveData(data: string): string {
   const algorithm = 'aes-256-gcm'
   const secretKey = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32)
   // IV would be generated but not used in current implementation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _iv = crypto.randomBytes(16)
   
   const cipher = crypto.createCipher(algorithm, secretKey)
   let encrypted = cipher.update(data, 'utf8', 'hex')

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
 import { logSecurityEvent } from '@/lib/security'
-import { checkAuthentication } from '@/lib/auth'
+// import { checkAuthentication } from '@/lib/auth' // Temporarily disabled
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     // Check if shop is authenticated
     let shopData = null
 
-    if (shop && shop !== 'development-store') {
+    if (shop) {
       try {
         // Try static token first (Custom App)
         let client = createStaticShopifyClient(shop)

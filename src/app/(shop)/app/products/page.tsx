@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Search, ShoppingCart, ArrowRight, X, Loader2, Package, AlertCircle } from 'lucide-react'
+import { Search, ShoppingCart, ArrowRight, X, Loader2, Package } from 'lucide-react'
 import Link from 'next/link'
 import { ShopifyProduct } from '@/lib/shopify'
 import { useAuth } from '@/contexts/AuthContext'
@@ -16,7 +16,7 @@ interface ProductWithSelection extends ShopifyProduct {
 }
 
 export default function ProductsPage() {
-  const { isAuthenticated, isLoading: authLoading, error: authError } = useAuth()
+  const { isLoading: authLoading } = useAuth()
   const { authenticatedFetch } = useAuthenticatedFetch()
   
   const [products, setProducts] = useState<ProductWithSelection[]>([])
