@@ -171,6 +171,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
             <Image
               style={styles.logo}
               src={config.logoUrl}
+              alt="Logo"
             />
           )}
           <Text style={styles.title}>{config.headerTitle}</Text>

@@ -13,7 +13,7 @@ export default function LayoutPage() {
   const { selectedProducts, config, updateConfig } = useLinesheet()
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
-  const handleConfigChange = (field: string, value: string | boolean) => {
+  const handleConfigChange = (field: string, value: string | boolean | number) => {
     const updates = { [field]: value } as Partial<typeof config>
     updateConfig(updates)
   }
@@ -186,6 +186,7 @@ export default function LayoutPage() {
             <div className="mt-2 space-y-3">
               {config.logoUrl ? (
                 <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={config.logoUrl} 
                     alt="Logo" 
