@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAppBridge } from '@shopify/app-bridge-react'
+import { createApp } from '@shopify/app-bridge'
 
 interface SessionData {
   shop: string | null
@@ -18,15 +18,22 @@ export function useShopifySession(): SessionData {
     error: null
   })
 
-  const app = useAppBridge()
-
   useEffect(() => {
     async function getSessionToken() {
       try {
-        if (!app) {
+        // Get host from URL parameters
+        const host = new URLSearchParams(window.location.search).get("host")
+        
+        if (!host || !process.env.NEXT_PUBLIC_SHOPIFY_API_KEY) {
           setSessionData(prev => ({ ...prev, isLoading: false, error: 'App Bridge not initialized' }))
           return
         }
+
+        // Create App Bridge instance
+        const app = createApp({
+          apiKey: process.env.NEXT_PUBLIC_SHOPIFY_API_KEY,
+          host: host,
+        })
 
         // Get session token from App Bridge
         const sessionToken = await app.getSessionToken()
@@ -64,7 +71,7 @@ export function useShopifySession(): SessionData {
     }
 
     getSessionToken()
-  }, [app])
+  }, [])
 
   return sessionData
 }

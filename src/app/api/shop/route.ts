@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
-import { logSecurityEvent, sanitizeInput } from '@/lib/security'
+import { logSecurityEvent } from '@/lib/security'
 import { checkAuthentication } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {

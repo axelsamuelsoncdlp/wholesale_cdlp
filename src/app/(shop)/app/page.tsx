@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const { authenticatedFetch } = useAuthenticatedFetch()
   
   const [presets, setPresets] = useState(mockPresets)
-  const [shopData, setShopData] = useState<any>(null)
+  const [shopData] = useState<{ name?: string; domain?: string } | null>(null)
   const [productCount, setProductCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
