@@ -16,28 +16,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottom: '1pt solid #000000',
     paddingBottom: 10,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   logo: {
     height: 40,
     width: 'auto',
     marginBottom: 10,
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 5,
   },
   season: {
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: 'left',
     fontStyle: 'italic',
   },
   productsGrid: {
@@ -50,33 +50,34 @@ const styles = StyleSheet.create({
     marginRight: 10,
     padding: 8,
     minHeight: 200,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   productImage: {
     width: '100%',
     height: 120,
     marginBottom: 8,
     objectFit: 'contain',
+    alignSelf: 'center',
   },
   productTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   productHandle: {
     fontSize: 8,
     color: '#666666',
     marginBottom: 6,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   productDetails: {
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   detailRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     marginBottom: 2,
     alignItems: 'center',
   },
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: 'bold',
     color: '#000000',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   footer: {
     position: 'absolute',
@@ -183,6 +184,9 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           <Text style={styles.season}>{config.season}</Text>
         </View>
 
+        {/* Line above products */}
+        <View style={{ borderBottom: '1pt solid #000000', marginBottom: 15 }} />
+
         {/* Products Grid */}
         <View style={styles.productsGrid}>
           {products.map((product) => (
@@ -250,6 +254,9 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
             </View>
           ))}
         </View>
+
+        {/* Line below products */}
+        <View style={{ borderBottom: '1pt solid #000000', marginTop: 15 }} />
 
         {/* Footer */}
         <Text style={styles.footer}>
