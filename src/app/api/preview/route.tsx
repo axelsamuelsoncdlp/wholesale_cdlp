@@ -25,10 +25,13 @@ export async function POST(request: NextRequest) {
     // Convert blob to base64 for preview
     const arrayBuffer = await pdfStream.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString('base64')
+    
+    // Create a more compatible data URL
     const dataUrl = `data:application/pdf;base64,${base64}`
 
     return NextResponse.json({ 
       previewUrl: dataUrl,
+      base64: base64,
       productCount: products.length,
       config: config
     })

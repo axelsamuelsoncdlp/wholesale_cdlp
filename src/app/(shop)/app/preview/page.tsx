@@ -10,6 +10,7 @@ import Link from 'next/link'
 export default function PreviewPage() {
   const { selectedProducts, config } = useLinesheet()
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [base64Data, setBase64Data] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,6 +36,7 @@ export default function PreviewPage() {
 
       const data = await response.json()
       setPreviewUrl(data.previewUrl)
+      setBase64Data(data.base64)
     } catch (err) {
       console.error('Error generating preview:', err)
       setError(err instanceof Error ? err.message : 'Failed to generate preview')
@@ -168,12 +170,55 @@ export default function PreviewPage() {
                   </Button>
                 </div>
               ) : previewUrl ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <iframe
-                    src={previewUrl}
-                    className="w-full h-[800px] border-0"
-                    title="Linesheet Preview"
-                  />
+                <div className="space-y-4">
+                  {/* PDF Viewer Options */}
+                  <div className="flex gap-2 p-2 bg-muted rounded-lg">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => window.open(previewUrl, '_blank')}
+                    >
+                      Open in New Tab
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        const link = document.createElement('a')
+                        link.href = previewUrl
+                        link.download = 'preview.pdf'
+                        link.click()
+                      }}
+                    >
+                      Download Preview
+                    </Button>
+                  </div>
+                  
+                  {/* Embedded PDF Viewer */}
+                  <div className="border rounded-lg overflow-hidden bg-white">
+                    <iframe
+                      src={previewUrl}
+                      className="w-full h-[800px] border-0"
+                      title="Linesheet Preview"
+                      style={{ minHeight: '800px' }}
+                    />
+                  </div>
+                  
+                  {/* Fallback Message */}
+                  <div className="text-center text-sm text-muted-foreground">
+                    <p>If the PDF doesn't display above, try opening it in a new tab or downloading the preview.</p>
+                  </div>
+                  
+                  {/* Debug Info */}
+                  <details className="text-xs text-muted-foreground">
+                    <summary className="cursor-pointer">Debug Info</summary>
+                    <div className="mt-2 p-2 bg-muted rounded text-left">
+                      <p>Preview URL: {previewUrl?.substring(0, 100)}...</p>
+                      <p>Base64 Length: {base64Data?.length || 0} characters</p>
+                      <p>Products: {selectedProducts.length}</p>
+                      <p>Config: {JSON.stringify(config, null, 2)}</p>
+                    </div>
+                  </details>
                 </div>
               ) : (
                 <div className="text-center py-12">
