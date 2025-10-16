@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingLeft: 0,
     paddingRight: 0,
-    width: '100%',
+    width: 80,
     alignSelf: 'flex-start',
   },
   detailRow: {
