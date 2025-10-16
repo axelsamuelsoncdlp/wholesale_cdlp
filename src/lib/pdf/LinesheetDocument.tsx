@@ -54,14 +54,13 @@ const styles = StyleSheet.create({
     padding: 0,
     minHeight: 160,
     textAlign: 'left',
-    flex: 1,
     alignItems: 'flex-start',
   },
   productImage: {
     width: '100%',
     height: 100,
     marginBottom: 4,
-    objectFit: 'cover',
+    objectFit: 'contain',
     alignSelf: 'flex-start',
   },
   productTitle: {
@@ -177,14 +176,17 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
     return styleMetafield?.node.value || product.handle.toUpperCase()
   }
 
+  const productsPerRow = config.productsPerRow || 8
+  const productsPerPage = productsPerRow * 2 // 2 rows per page
+  
   const dynamicStyles = StyleSheet.create({
     productCard: {
       ...styles.productCard,
+      width: `${100 / productsPerRow}%`,
     },
   })
 
-  // Split products into pages of exactly 16 (8 per row, 2 rows max)
-  const productsPerPage = 16
+  // Split products into pages
   const pages = []
   for (let i = 0; i < products.length; i += productsPerPage) {
     const pageProducts = products.slice(i, i + productsPerPage)
@@ -216,9 +218,9 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
           {/* Products Grid */}
           <View style={styles.productsGrid}>
-            {Array.from({ length: Math.ceil(pageProducts.length / 8) }, (_, rowIndex) => (
+            {Array.from({ length: Math.ceil(pageProducts.length / productsPerRow) }, (_, rowIndex) => (
               <View key={rowIndex} style={styles.productRow}>
-                {pageProducts.slice(rowIndex * 8, (rowIndex + 1) * 8).map((product) => (
+                {pageProducts.slice(rowIndex * productsPerRow, (rowIndex + 1) * productsPerRow).map((product) => (
                   <View key={product.id} style={dynamicStyles.productCard}>
                     {/* Product Image */}
                     {config.fieldToggles.images && product.images.edges.length > 0 && (
