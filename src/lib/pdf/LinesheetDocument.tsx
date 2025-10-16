@@ -51,12 +51,13 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   productCard: {
-    margin: 0,
+    margin: 5,
     padding: 0,
     minHeight: 160,
     textAlign: 'left',
     flexDirection: 'column',
     alignItems: 'flex-start',
+    border: '1px solid red',
   },
   productImage: {
     width: '100%',
@@ -65,6 +66,7 @@ const styles = StyleSheet.create({
     padding: 0,
     objectFit: 'contain',
     alignSelf: 'flex-start',
+    border: '1px solid blue',
   },
   productTitle: {
     fontSize: 6,
@@ -89,6 +91,7 @@ const styles = StyleSheet.create({
     margin: 0,
     width: '100%',
     alignSelf: 'flex-start',
+    border: '1px solid green',
   },
   detailRow: {
     flexDirection: 'row',
