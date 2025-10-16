@@ -48,7 +48,8 @@ const styles = StyleSheet.create({
   productRow: {
     flexDirection: 'row',
     margin: 0,
-    padding: 0,
+    padding: 5,
+    border: '2px solid purple',
   },
   productCard: {
     margin: 5,
