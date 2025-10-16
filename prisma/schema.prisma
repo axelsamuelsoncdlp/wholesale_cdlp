@@ -14,7 +14,7 @@ model Shop {
   id          String   @id @default(cuid())
   domain      String   @unique
   accessToken String
-  logoUrl     String?  @db.Text
+  logoUrl     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   presets     LinesheetPreset[]
