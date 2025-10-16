@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { saveLogo, getLogo } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,24 +15,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Shop is required' }, { status: 400 })
     }
 
-    // Update shop with logo URL
-    const result = await db.shop.upsert({
-      where: { domain: shop },
-      update: { logoUrl: logoUrl || null },
-      create: {
-        id: shop,
-        domain: shop,
-        logoUrl: logoUrl || null,
-        accessToken: 'temp-token',
-      },
-    })
+    // Save logo using Supabase
+    const result = await saveLogo(shop, logoUrl || '')
+    
+    if (!result.success) {
+      console.error('[Logo API] Failed to save logo:', result.error)
+      return NextResponse.json({ 
+        error: 'Failed to save logo', 
+        details: result.error 
+      }, { status: 500 })
+    }
     
     console.log('[Logo API] Logo saved successfully:', { 
       shop, 
-      hasLogoUrl: !!result.logoUrl 
+      hasLogoUrl: !!logoUrl 
     })
 
-    return NextResponse.json({ success: true, logoUrl: result.logoUrl })
+    return NextResponse.json({ success: true, logoUrl })
   } catch (error) {
     console.error('[Logo API] Error saving logo:', error)
     return NextResponse.json({ 
@@ -53,18 +52,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Shop is required' }, { status: 400 })
     }
 
-    const shopData = await db.shop.findUnique({
-      where: { domain: shop },
-      select: { logoUrl: true },
-    })
+    // Get logo using Supabase
+    const result = await getLogo(shop)
+    
+    if (!result.success) {
+      console.error('[Logo API] Failed to fetch logo:', result.error)
+      return NextResponse.json({ 
+        error: 'Failed to fetch logo',
+        details: result.error
+      }, { status: 500 })
+    }
     
     console.log('[Logo API] Logo fetched:', { 
       shop, 
-      hasLogoUrl: !!shopData?.logoUrl,
-      logoUrlLength: shopData?.logoUrl?.length 
+      hasLogoUrl: !!result.logoUrl,
+      logoUrlLength: result.logoUrl?.length 
     })
 
-    return NextResponse.json({ logoUrl: shopData?.logoUrl || null })
+    return NextResponse.json({ logoUrl: result.logoUrl })
   } catch (error) {
     console.error('[Logo API] Error fetching logo:', error)
     return NextResponse.json({ 
