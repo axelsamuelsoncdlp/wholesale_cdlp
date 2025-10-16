@@ -30,14 +30,22 @@ export default function LayoutPage() {
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      console.log('[Layout] Logo file selected:', { 
+        name: file.name, 
+        size: file.size, 
+        type: file.type 
+      })
+      
       const reader = new FileReader()
       reader.onload = async (e) => {
         const result = e.target?.result as string
+        console.log('[Layout] Logo converted to base64, length:', result.length)
+        
         updateConfig({ logoUrl: result })
         
         // Save logo to database
         try {
-          await fetch('/api/logo', {
+          const response = await fetch('/api/logo', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -47,8 +55,15 @@ export default function LayoutPage() {
               shop: 'cdlpstore'
             }),
           })
+          
+          if (response.ok) {
+            const data = await response.json()
+            console.log('[Layout] Logo saved successfully:', data)
+          } else {
+            console.error('[Layout] Failed to save logo:', response.status)
+          }
         } catch (error) {
-          console.error('Error saving logo:', error)
+          console.error('[Layout] Error saving logo:', error)
         }
       }
       reader.readAsDataURL(file)

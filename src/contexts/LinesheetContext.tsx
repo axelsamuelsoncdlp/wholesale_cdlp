@@ -65,15 +65,24 @@ export function LinesheetProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadLogo = async () => {
       try {
+        console.log('[LinesheetContext] Loading logo from database...')
         const response = await fetch('/api/logo?shop=cdlpstore')
+        
         if (response.ok) {
           const data = await response.json()
+          console.log('[LinesheetContext] Logo loaded:', { 
+            hasLogoUrl: !!data.logoUrl,
+            logoUrlLength: data.logoUrl?.length 
+          })
+          
           if (data.logoUrl) {
             setConfig(prev => ({ ...prev, logoUrl: data.logoUrl }))
           }
+        } else {
+          console.error('[LinesheetContext] Failed to load logo:', response.status)
         }
       } catch (error) {
-        console.error('Error loading logo:', error)
+        console.error('[LinesheetContext] Error loading logo:', error)
       }
     }
     
