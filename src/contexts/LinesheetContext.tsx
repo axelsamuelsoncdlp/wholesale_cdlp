@@ -45,7 +45,7 @@ const defaultConfig: LinesheetConfig = {
   logoUrl: undefined,
   fieldToggles: {
     productName: true,
-    styleNumber: true,
+    styleNumber: false,
     season: true,
     wholesalePrice: true,
     msrpPrice: true,

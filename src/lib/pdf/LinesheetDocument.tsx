@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     padding: 0,
     minHeight: 160,
     textAlign: 'left',
-    alignItems: 'flex-start',
+    position: 'relative',
   },
   productImage: {
     width: 80,
@@ -63,7 +63,9 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     objectFit: 'contain',
-    alignSelf: 'flex-start',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   productTitle: {
     fontSize: 6,
@@ -87,7 +89,9 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
     width: 80,
-    alignSelf: 'flex-start',
+    position: 'absolute',
+    top: 80,
+    left: 0,
   },
   detailRow: {
     flexDirection: 'row',
