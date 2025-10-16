@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
     textAlign: 'left',
     position: 'relative',
+    border: '1px solid red',
   },
   productImage: {
     width: 80,
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
+    border: '1px solid blue',
   },
   productTitle: {
     fontSize: 6,
@@ -92,6 +94,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 80,
     left: 0,
+    border: '1px solid green',
   },
   detailRow: {
     flexDirection: 'row',
