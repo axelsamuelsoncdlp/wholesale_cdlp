@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   productCard: {
     marginRight: 2,
-    padding: 3,
+    padding: 0,
     minHeight: 160,
     textAlign: 'left',
     flex: 1,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 100,
     marginBottom: 4,
-    objectFit: 'contain',
+    objectFit: 'cover',
     alignSelf: 'flex-start',
   },
   productTitle: {
@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
   productDetails: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    paddingLeft: 0,
-    paddingRight: 0,
+    paddingLeft: 2,
+    paddingRight: 2,
     width: '100%',
     alignSelf: 'flex-start',
   },
