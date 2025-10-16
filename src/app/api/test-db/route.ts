@@ -4,6 +4,12 @@ import { db } from '@/lib/db'
 export async function GET(request: NextRequest) {
   try {
     console.log('[Test DB] Testing database connection...')
+    console.log('[Test DB] Environment check:', {
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasSupabaseUrl: !!process.env.SUPABASE_URL,
+      databaseUrlStart: process.env.DATABASE_URL?.substring(0, 20),
+      supabaseUrlStart: process.env.SUPABASE_URL?.substring(0, 20)
+    })
     
     // Test basic database connection
     const shops = await db.shop.findMany({
@@ -36,7 +42,11 @@ export async function GET(request: NextRequest) {
       success: true,
       shopsCount: shops.length,
       testShop: testShop,
-      message: 'Database connection working'
+      message: 'Database connection working',
+      env: {
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        hasSupabaseUrl: !!process.env.SUPABASE_URL
+      }
     })
     
   } catch (error) {
@@ -44,7 +54,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
+      env: {
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        hasSupabaseUrl: !!process.env.SUPABASE_URL,
+        databaseUrlStart: process.env.DATABASE_URL?.substring(0, 20),
+        supabaseUrlStart: process.env.SUPABASE_URL?.substring(0, 20)
+      }
     }, { status: 500 })
   }
 }
