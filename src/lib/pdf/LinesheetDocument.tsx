@@ -49,7 +49,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     margin: 0,
     padding: 5,
-    border: '2px solid purple',
+    border: '2px solid #800080',
+    backgroundColor: '#f0f0f0',
   },
   productCard: {
     margin: 5,
