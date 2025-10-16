@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   productImage: {
-    width: '100%',
-    height: 100,
+    width: 80,
+    height: 80,
     marginBottom: 4,
     objectFit: 'contain',
     alignSelf: 'flex-start',
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
   productDetails: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    paddingLeft: 2,
-    paddingRight: 2,
+    paddingLeft: 0,
+    paddingRight: 0,
     width: '100%',
     alignSelf: 'flex-start',
   },
@@ -183,6 +183,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
     productCard: {
       ...styles.productCard,
       width: `${100 / productsPerRow}%`,
+      maxWidth: `${100 / productsPerRow}%`,
     },
   })
 
