@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
     padding: 5,
     border: '2px solid #800080',
     backgroundColor: '#f0f0f0',
+    marginBottom: 10,
   },
   productCard: {
     margin: 5,
