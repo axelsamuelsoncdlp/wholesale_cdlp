@@ -44,17 +44,11 @@ const styles = StyleSheet.create({
   },
   productsGrid: {
     flexDirection: 'column',
-    border: '3px solid #FF0000',
-    backgroundColor: '#FFFFE0',
-    padding: 10,
-    margin: 10,
   },
   productRow: {
     flexDirection: 'row',
     margin: 0,
     padding: 5,
-    border: '2px solid #800080',
-    backgroundColor: '#f0f0f0',
     marginBottom: 10,
   },
   productCard: {
@@ -64,7 +58,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    border: '1px solid red',
   },
   productImage: {
     width: '100%',
@@ -73,7 +66,6 @@ const styles = StyleSheet.create({
     padding: 0,
     objectFit: 'contain',
     alignSelf: 'flex-start',
-    border: '1px solid blue',
   },
   productTitle: {
     fontSize: 6,
@@ -98,7 +90,6 @@ const styles = StyleSheet.create({
     margin: 0,
     width: '100%',
     alignSelf: 'flex-start',
-    border: '1px solid green',
   },
   detailRow: {
     flexDirection: 'row',
@@ -117,7 +108,7 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 5,
-    color: '#000000',
+    color: '#999999',
     margin: 0,
     padding: 0,
     flexWrap: 'wrap',
@@ -305,14 +296,14 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 20 }}>
+          <Text style={{ fontSize: 10, color: '#999999', position: 'absolute', bottom: 20, left: 20 }}>
             Page: {pageIndex + 1} of {pages.length}
           </Text>
-          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, left: 200 }}>
+          <Text style={{ fontSize: 10, color: '#999999', position: 'absolute', bottom: 20, left: 200 }}>
             {config.headerTitle}
           </Text>
-          <Text style={{ fontSize: 10, color: '#000000', position: 'absolute', bottom: 20, right: 20 }}>
-            POWERED BY NUORDER
+          <Text style={{ fontSize: 10, color: '#999999', position: 'absolute', bottom: 20, right: 20 }}>
+            {config.season}
           </Text>
         </View>
         </Page>
