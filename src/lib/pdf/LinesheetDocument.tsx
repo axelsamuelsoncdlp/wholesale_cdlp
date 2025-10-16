@@ -44,6 +44,10 @@ const styles = StyleSheet.create({
   },
   productsGrid: {
     flexDirection: 'column',
+    border: '3px solid #FF0000',
+    backgroundColor: '#FFFFE0',
+    padding: 10,
+    margin: 10,
   },
   productRow: {
     flexDirection: 'row',
