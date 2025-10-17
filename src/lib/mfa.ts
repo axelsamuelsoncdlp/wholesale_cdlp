@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import { generateSecret, generateTOTP, verifyTOTP } from '@noble/hashes/totp'
+import { generateSecret, generateTOTP, verifyTOTP } from '@noble/hashes'
 import { generateMFASecret, verifyMFAToken } from './auth'
 
 export interface MFASetupResult {
