@@ -152,7 +152,7 @@ export default function VerifyEmailPage() {
 
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            If you're having trouble verifying your email, please contact your system administrator.
+            If you&apos;re having trouble verifying your email, please contact your system administrator.
           </p>
         </div>
       </div>

@@ -80,15 +80,16 @@ export function isValidBackupCode(code: string): boolean {
 }
 
 // Hash backup codes for storage
-export function hashBackupCode(code: string): string {
+export async function hashBackupCode(code: string): Promise<string> {
   // Simple hash for backup codes - in production, use bcrypt
-  const crypto = require('crypto')
+  const crypto = await import('crypto')
   return crypto.createHash('sha256').update(code).digest('hex')
 }
 
 // Verify backup code
-export function verifyBackupCode(code: string, hashedCode: string): boolean {
-  return hashBackupCode(code) === hashedCode
+export async function verifyBackupCode(code: string, hashedCode: string): Promise<boolean> {
+  const hashed = await hashBackupCode(code)
+  return hashed === hashedCode
 }
 
 // MFA validation with backup codes

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get('severity')
     const event = searchParams.get('event')
 
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (severity && severity !== 'ALL') {
       where.severity = severity

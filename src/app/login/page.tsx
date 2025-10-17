@@ -168,7 +168,7 @@ export default function LoginPage() {
                 Forgot your password?
               </Link>
               <div className="text-sm text-gray-600">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link
                   href="/register"
                   className="text-blue-600 hover:text-blue-500"

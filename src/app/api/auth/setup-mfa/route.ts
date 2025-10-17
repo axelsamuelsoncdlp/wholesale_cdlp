@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { db } from '@/lib/db'
 import { enableMFA } from '@/lib/auth'
 import { generateMFASetup } from '@/lib/mfa'

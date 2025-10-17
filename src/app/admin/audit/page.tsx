@@ -24,7 +24,7 @@ interface AuditLog {
   event: string
   ip: string | null
   userAgent: string | null
-  details: any
+  details: Record<string, unknown>
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   createdAt: string
   user?: {
@@ -191,7 +191,7 @@ export default function AdminAuditPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         {getSeverityIcon(log.severity)}
-                        <Badge variant={getSeverityColor(log.severity) as any}>
+                        <Badge variant={getSeverityColor(log.severity) as 'default' | 'secondary' | 'destructive' | 'outline'}>
                           {log.severity}
                         </Badge>
                         <span className="font-medium">{log.event}</span>

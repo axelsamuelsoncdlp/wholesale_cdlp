@@ -117,7 +117,7 @@ export const emailTemplates = {
     `
   }),
 
-  suspiciousActivity: (email: string, details: any) => ({
+  suspiciousActivity: (email: string, details: Record<string, unknown>) => ({
     subject: 'Suspicious activity detected on your account',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -312,7 +312,7 @@ export async function sendMFASetupEmail(email: string): Promise<boolean> {
   return sendEmail(email, template.subject, template.html)
 }
 
-export async function sendSuspiciousActivityAlert(email: string, details: any): Promise<boolean> {
+export async function sendSuspiciousActivityAlert(email: string, details: Record<string, unknown>): Promise<boolean> {
   const template = emailTemplates.suspiciousActivity(email, details)
   return sendEmail(email, template.subject, template.html)
 }

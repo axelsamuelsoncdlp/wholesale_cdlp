@@ -225,7 +225,7 @@ export default function MFASetupPage() {
                       <p className="font-medium text-yellow-800">Important Security Note</p>
                       <p className="text-yellow-700 mt-1">
                         Make sure to save your backup codes in a secure location. 
-                        You'll need them if you lose access to your authenticator app.
+                        You&apos;ll need them if you lose access to your authenticator app.
                       </p>
                     </div>
                   </div>

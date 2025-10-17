@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { db } from '@/lib/db'
 import { sendUserRejectedEmail } from '@/lib/email'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   const session = await getServerSession()
   
@@ -17,7 +17,7 @@ export async function POST(
     )
   }
 
-  const { userId } = params
+  const { userId } = await params
   const { reason } = await request.json()
 
   try {
