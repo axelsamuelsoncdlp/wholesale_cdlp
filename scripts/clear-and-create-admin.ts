@@ -10,24 +10,39 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
   }
 })
 
-async function createAdminUser(email: string, password: string) {
+async function clearAllUsersAndCreateAdmin(email: string, password: string) {
   try {
-    console.log('Creating admin user...')
+    console.log('🧹 Clearing all users and profiles...')
 
-    // First, check if user already exists and delete if needed
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
-    const existingUser = existingUsers.users.find(user => user.email === email)
-    
-    if (existingUser) {
-      console.log('User already exists, deleting...')
-      // Delete profile first
-      await supabaseAdmin.from('profiles').delete().eq('id', existingUser.id)
-      // Then delete auth user
-      await supabaseAdmin.auth.admin.deleteUser(existingUser.id)
-      console.log('Existing user and profile deleted')
+    // Get all users
+    const { data: allUsers } = await supabaseAdmin.auth.admin.listUsers()
+    console.log(`Found ${allUsers.users.length} existing users`)
+
+    // Delete all profiles first
+    const { error: deleteProfilesError } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000') // Delete all profiles
+
+    if (deleteProfilesError) {
+      console.error('❌ Error deleting profiles:', deleteProfilesError.message)
+    } else {
+      console.log('✅ All profiles deleted')
     }
 
-    // Create user in auth.users
+    // Delete all auth users
+    for (const user of allUsers.users) {
+      const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+      if (deleteUserError) {
+        console.error(`❌ Error deleting user ${user.email}:`, deleteUserError.message)
+      } else {
+        console.log(`✅ Deleted user: ${user.email}`)
+      }
+    }
+
+    console.log('\n🎯 Creating new admin user...')
+
+    // Create new admin user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -46,7 +61,7 @@ async function createAdminUser(email: string, password: string) {
 
     console.log('✅ Auth user created:', authData.user.id)
 
-    // Create profile with admin role
+    // Create admin profile
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -63,17 +78,17 @@ async function createAdminUser(email: string, password: string) {
       return
     }
 
-    console.log('✅ Admin profile created successfully!')
+    console.log('\n🎉 Admin user created successfully!')
     console.log(`📧 Email: ${email}`)
     console.log(`👑 Role: ADMIN`)
     console.log(`✅ Approved: true`)
     console.log(`🆔 User ID: ${authData.user.id}`)
-    console.log('\n🔐 Admin user created successfully!')
+    console.log('\n🔐 Login credentials:')
     console.log(`   Email: ${email}`)
     console.log(`   Password: ${password}`)
 
   } catch (error) {
-    console.error('❌ Error creating admin user:', error)
+    console.error('❌ Error:', error)
   }
 }
 
@@ -81,16 +96,16 @@ const email = process.argv[2]
 const password = process.argv[3]
 
 if (!email || !password) {
-  console.error('Usage: npx tsx scripts/create-admin.ts <email> <password>')
+  console.error('Usage: npx tsx scripts/clear-and-create-admin.ts <email> <password>')
   process.exit(1)
 }
 
-createAdminUser(email, password)
+clearAllUsersAndCreateAdmin(email, password)
   .then(() => {
-    console.log('\n🎉 Admin user creation completed!')
+    console.log('\n✅ Process completed!')
     process.exit(0)
   })
   .catch((error) => {
-    console.error('❌ Failed to create admin user:', error)
+    console.error('❌ Failed:', error)
     process.exit(1)
   })
