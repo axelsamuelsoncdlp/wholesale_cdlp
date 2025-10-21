@@ -157,6 +157,7 @@ export default function ProductsPage() {
   }
 
   // Handle select all
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
       displayProducts.forEach(product => addSelectedProduct(product))

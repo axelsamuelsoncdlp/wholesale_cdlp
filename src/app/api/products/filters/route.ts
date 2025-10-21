@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     console.log('Fetching all products to extract collections and tags...')
 
     while (hasNextPage && totalProducts < 1000) { // Limit to prevent excessive API calls
-      const products = await client.getProducts(100, endCursor)
+      const products = await client.getProducts(100, endCursor || undefined)
       
       products.edges.forEach(edge => {
         const product = edge.node
