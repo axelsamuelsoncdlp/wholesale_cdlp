@@ -10,6 +10,11 @@ export async function middleware(request: NextRequest) {
     '/pending-approval',
     '/api/auth',
     '/api/profile',
+    '/api/products',
+    '/api/shop',
+    '/api/logo',
+    '/api/test-db',
+    '/api/env-check',
     '/auth/callback',
     '/_next',
     '/favicon.ico'
