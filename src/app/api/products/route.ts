@@ -47,9 +47,31 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const firstParam = searchParams.get('first') || '50'
     const afterParam = searchParams.get('after')
+    const searchQuery = searchParams.get('search')
+    const collection = searchParams.get('collection')
+    const tag = searchParams.get('tag')
     
     const first = Math.min(parseInt(sanitizeInput(firstParam)), 100) // Max 100 products
     const after = afterParam ? sanitizeInput(afterParam) : undefined
+
+    // Build Shopify search query string
+    let shopifyQuery = ''
+    const queryParts: string[] = []
+    
+    if (searchQuery) {
+      const sanitized = sanitizeInput(searchQuery)
+      queryParts.push(`title:*${sanitized}* OR tag:*${sanitized}* OR sku:*${sanitized}*`)
+    }
+    
+    if (collection) {
+      queryParts.push(`collection:${sanitizeInput(collection)}`)
+    }
+    
+    if (tag) {
+      queryParts.push(`tag:${sanitizeInput(tag)}`)
+    }
+    
+    shopifyQuery = queryParts.join(' AND ')
 
     // Log product access
     logSecurityEvent({
@@ -57,12 +79,22 @@ export async function GET(request: NextRequest) {
       shop,
       ip,
       severity: 'low',
-      details: { first, hasAfter: !!after, usingStaticToken: !!(await import('@/lib/shopify')).getStaticAccessToken() },
+      details: { 
+        first, 
+        hasAfter: !!after, 
+        hasSearch: !!searchQuery,
+        hasCollection: !!collection,
+        hasTag: !!tag,
+        shopifyQuery,
+        usingStaticToken: !!(await import('@/lib/shopify')).getStaticAccessToken() 
+      },
     })
 
-    // Fetch products
-    console.log('About to fetch products from Shopify...')
-    const products = await client.getProducts(first, after)
+    // Fetch products - use search method if we have filters, otherwise use regular getProducts
+    console.log('About to fetch products from Shopify...', { shopifyQuery, hasFilters: !!shopifyQuery })
+    const products = shopifyQuery 
+      ? await client.searchProducts(shopifyQuery, first, after)
+      : await client.getProducts(first, after)
     console.log('Successfully fetched products:', { 
       productCount: products.edges.length,
       hasNextPage: products.pageInfo.hasNextPage 

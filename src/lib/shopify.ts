@@ -6,6 +6,17 @@ export interface ShopifyProduct {
   id: string
   title: string
   handle: string
+  productType?: string
+  tags: string[]
+  collections?: {
+    edges: Array<{
+      node: {
+        id: string
+        title: string
+        handle: string
+      }
+    }>
+  }
   images: {
     edges: Array<{
       node: {
@@ -61,6 +72,79 @@ export const GET_PRODUCTS_QUERY = `
           id
           title
           handle
+          productType
+          tags
+          collections(first: 5) {
+            edges {
+              node {
+                id
+                title
+                handle
+              }
+            }
+          }
+          images(first: 1) {
+            edges {
+              node {
+                id
+                url
+                altText
+              }
+            }
+          }
+          variants(first: 100) {
+            edges {
+              node {
+                id
+                sku
+                price
+                compareAtPrice
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+          }
+          metafields(first: 10, namespace: "custom") {
+            edges {
+              node {
+                id
+                namespace
+                key
+                value
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+export const SEARCH_PRODUCTS_QUERY = `
+  query searchProducts($first: Int!, $query: String, $after: String) {
+    products(first: $first, query: $query, after: $after) {
+      edges {
+        node {
+          id
+          title
+          handle
+          productType
+          tags
+          collections(first: 5) {
+            edges {
+              node {
+                id
+                title
+                handle
+              }
+            }
+          }
           images(first: 1) {
             edges {
               node {
@@ -205,6 +289,36 @@ export class ShopifyClient {
 
     if (response.errors) {
       console.error('GraphQL errors:', response.errors)
+      throw new Error(`GraphQL errors: ${response.errors.map(e => e.message).join(', ')}`)
+    }
+
+    return response.data.products
+  }
+
+  async searchProducts(searchQuery?: string, first: number = 50, after?: string) {
+    console.log('ShopifyClient.searchProducts called with:', { searchQuery, first, after, shop: this.shop })
+    
+    const response = await this.graphql<{
+      products: {
+        edges: Array<{
+          node: ShopifyProduct
+        }>
+        pageInfo: {
+          hasNextPage: boolean
+          endCursor: string
+        }
+      }
+    }>(SEARCH_PRODUCTS_QUERY, { first, query: searchQuery, after })
+
+    console.log('Search GraphQL response:', { 
+      hasData: !!response.data,
+      hasErrors: !!response.errors,
+      errors: response.errors,
+      productCount: response.data?.products?.edges?.length || 0
+    })
+
+    if (response.errors) {
+      console.error('Search GraphQL errors:', response.errors)
       throw new Error(`GraphQL errors: ${response.errors.map(e => e.message).join(', ')}`)
     }
 

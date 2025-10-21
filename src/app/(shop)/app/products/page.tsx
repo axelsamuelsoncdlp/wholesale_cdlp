@@ -27,20 +27,58 @@ export default function ProductsPage() {
   
   const [products, setProducts] = useState<ShopifyProduct[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [selectedCollection, setSelectedCollection] = useState<string>('')
+  const [selectedTag, setSelectedTag] = useState<string>('')
+  const [collections, setCollections] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>([])
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasNextPage, setHasNextPage] = useState(false)
   const [endCursor, setEndCursor] = useState<string | null>(null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  // Fetch products from API
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Fetch filters on mount
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const response = await fetch('/api/products/filters')
+        const data = await response.json()
+        
+        if (response.ok) {
+          setCollections(data.collections || [])
+          setTags(data.tags || [])
+        }
+      } catch (err) {
+        console.error('Error fetching filters:', err)
+      }
+    }
+
+    fetchFilters()
+  }, [])
+
+  // Fetch products with search and filters
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true)
         setError(null)
         
-        const response = await fetch('/api/products?first=50')
+        const params = new URLSearchParams({ first: '50' })
+        if (debouncedSearch) params.append('search', debouncedSearch)
+        if (selectedCollection) params.append('collection', selectedCollection)
+        if (selectedTag) params.append('tag', selectedTag)
+        
+        const response = await fetch(`/api/products?${params}`)
         const data = await response.json()
         
         if (!response.ok) {
@@ -62,7 +100,7 @@ export default function ProductsPage() {
     }
 
     fetchProducts()
-  }, [])
+  }, [debouncedSearch, selectedCollection, selectedTag])
 
   // Load more products function
   const loadMoreProducts = async () => {
@@ -71,17 +109,22 @@ export default function ProductsPage() {
     try {
       setIsLoadingMore(true)
       
-      const response = await fetch(`/api/products?first=50&after=${endCursor}`)
+      const params = new URLSearchParams({ first: '50', after: endCursor })
+      if (debouncedSearch) params.append('search', debouncedSearch)
+      if (selectedCollection) params.append('collection', selectedCollection)
+      if (selectedTag) params.append('tag', selectedTag)
+      
+      const response = await fetch(`/api/products?${params}`)
       const data = await response.json()
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch more products')
       }
       
-          // Transform new products and append to existing ones
-          const newProductsData = data.edges.map((edge: { node: ShopifyProduct }) => edge.node)
-          
-          setProducts(prev => [...prev, ...newProductsData])
+      // Transform new products and append to existing ones
+      const newProductsData = data.edges.map((edge: { node: ShopifyProduct }) => edge.node)
+      
+      setProducts(prev => [...prev, ...newProductsData])
       setHasNextPage(data.pageInfo.hasNextPage)
       setEndCursor(data.pageInfo.endCursor)
     } catch (err) {
@@ -92,11 +135,17 @@ export default function ProductsPage() {
     }
   }
 
-  // Filter products based on search query
-  const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.handle.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Clear filters function
+  const clearFilters = () => {
+    setSearchQuery('')
+    setSelectedCollection('')
+    setSelectedTag('')
+  }
+
+  // Filter products based on showSelectedOnly
+  const displayProducts = showSelectedOnly 
+    ? products.filter(product => isProductSelected(product.id))
+    : products
 
   // Handle product selection
   const handleProductSelect = (product: ShopifyProduct, selected: boolean) => {
@@ -189,47 +238,76 @@ export default function ProductsPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="select-all"
-                    checked={filteredProducts.length > 0 && filteredProducts.every(p => isProductSelected(p.id))}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <label htmlFor="select-all" className="text-sm font-medium">
-                    Select All ({filteredProducts.length})
-                  </label>
-                </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products by name, SKU, or tag..."
+            className="pl-10"
+          />
+        </div>
+        
+        {/* Filters */}
+        <div className="flex gap-4 flex-wrap">
+          <select
+            value={selectedCollection}
+            onChange={(e) => setSelectedCollection(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="">All Collections</option>
+            {collections.map(col => (
+              <option key={col} value={col}>{col}</option>
+            ))}
+          </select>
+          
+          <select
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+            className="border rounded px-3 py-2 min-w-[150px]"
+          >
+            <option value="">All Tags</option>
+            {tags.map(tag => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
+          </select>
+          
+          {(debouncedSearch || selectedCollection || selectedTag) && (
+            <Button variant="outline" onClick={clearFilters}>
+              Clear Filters
+            </Button>
+          )}
+        </div>
+        
+        {/* Show selected only checkbox */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="show-selected"
+            checked={showSelectedOnly}
+            onCheckedChange={(checked) => setShowSelectedOnly(checked as boolean)}
+          />
+          <label htmlFor="show-selected" className="text-sm font-medium">
+            Show selected only
+          </label>
+        </div>
+      </div>
 
       {/* Products Grid */}
-      {filteredProducts.length === 0 ? (
+      {displayProducts.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-medium mb-2">No products found</h3>
             <p className="text-muted-foreground">
-              {searchQuery ? 'Try adjusting your search terms' : 'No products available in your store'}
+              {searchQuery || selectedCollection || selectedTag ? 'Try adjusting your search terms or filters' : 'No products available in your store'}
             </p>
           </CardContent>
         </Card>
       ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
+              {displayProducts.map((product) => (
                 <Card key={product.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">

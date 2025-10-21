@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
     '/api/auth',
     '/api/profile',
     '/api/products',
+    '/api/products/filters',
     '/api/shop',
     '/api/logo',
     '/api/test-db',
