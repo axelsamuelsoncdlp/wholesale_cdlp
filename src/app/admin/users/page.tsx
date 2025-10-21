@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createSupabaseClient } from '@/lib/supabase'
 import { Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createSupabaseClient()
 
-  const checkUserAndLoadData = async () => {
+  const checkUserAndLoadData = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
     
     if (!session) {
@@ -32,13 +32,13 @@ export default function AdminUsersPage() {
     }
 
     loadUsers()
-  }
+  }, [supabase, loadUsers])
 
   useEffect(() => {
     checkUserAndLoadData()
   }, [checkUserAndLoadData])
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
 
   const approveUser = async (userId: string) => {
     try {

@@ -13,6 +13,7 @@ export function verifyShopifyHmac(query: Record<string, string | null>): boolean
   }
 
   // Remove hmac and signature from query for validation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { hmac: _hmac, signature: _signature, ...params } = query
   
   // Sort parameters and create query string

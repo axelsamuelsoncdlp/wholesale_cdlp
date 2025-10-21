@@ -10,19 +10,6 @@ export default function LoginPage() {
   const [supabase] = useState(() => createSupabaseClient())
   const router = useRouter()
 
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Check if user is approved
-        checkUserApproval(session.user.id)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth, checkUserApproval])
-
   const checkUserApproval = async (userId: string) => {
     const { data: profile } = await supabase
       .from('profiles')
@@ -36,6 +23,19 @@ export default function LoginPage() {
       router.push('/pending-approval')
     }
   }
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Check if user is approved
+        checkUserApproval(session.user.id)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth, checkUserApproval])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
