@@ -1,10 +1,4 @@
-import { NextRequest } from 'next/server'
+// @ts-expect-error - NextAuth v5 beta compatibility issue with Next.js 15
 import { auth } from '@/lib/auth-config'
 
-export async function GET(request: NextRequest) {
-  return auth(request)
-}
-
-export async function POST(request: NextRequest) {
-  return auth(request)
-}
+export const { GET, POST } = auth
