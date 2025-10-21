@@ -215,6 +215,7 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
               <Image
                 style={styles.logo}
                 src={config.logoUrl}
+                alt=""
               />
             )}
             {config.headerTitle && (
