@@ -208,7 +208,7 @@ function getMSRPPrice(product: ShopifyProduct): number {
 
 function getTotalUnits(product: ShopifyProduct): number {
   // Sum up quantities from all variants
-  return product.variants.edges.reduce((total, variant) => {
+  return product.variants.edges.reduce((total, _variant) => {
     // For now, assume 1 unit per variant (could be enhanced with inventory data)
     return total + 1
   }, 0)
