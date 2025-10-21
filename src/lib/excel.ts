@@ -161,6 +161,9 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           const buffer = await response.buffer()
           console.log('Image downloaded, size:', buffer.length, 'bytes')
           
+          // Convert to Node.js Buffer for exceljs compatibility
+          const nodeBuffer = Buffer.from(buffer)
+          
           // Determine image extension from content type or URL
           const contentType = response.headers.get('content-type') || ''
           let extension = 'jpeg'
@@ -169,7 +172,7 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           else if (contentType.includes('webp')) extension = 'webp'
           
           const imageId = workbook.addImage({
-            buffer: buffer,
+            buffer: nodeBuffer,
             extension: extension,
           })
           
@@ -311,7 +314,7 @@ function getMSRPPrice(product: ShopifyProduct): number {
 
 function getTotalUnits(product: ShopifyProduct): number {
   // Sum up quantities from all variants
-  return product.variants.edges.reduce((total, _variant) => {
+  return product.variants.edges.reduce((total) => {
     // For now, assume 1 unit per variant (could be enhanced with inventory data)
     return total + 1
   }, 0)
