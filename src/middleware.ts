@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
     '/login',
     '/pending-approval',
     '/api/auth',
+    '/api/profile',
     '/auth/callback',
     '/_next',
     '/favicon.ico'
@@ -56,35 +57,10 @@ export async function middleware(request: NextRequest) {
         )
       }
     }
-
-    // Check approval status
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_approved, role')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!profile?.is_approved) {
-      if (pathname.startsWith('/app')) {
-        return NextResponse.redirect(new URL('/pending-approval', request.url))
-      } else {
-        return NextResponse.json(
-          { error: 'Account pending approval' },
-          { status: 403 }
-        )
-      }
-    }
-
-    // Admin-only routes
-    const adminRoutes = ['/app/admin']
-    const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
-
-    if (isAdminRoute && profile.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      )
-    }
+    
+    // Let the application handle approval status checks
+    // AuthContext will handle redirects based on profile status
+    // Don't block here - this prevents middleware from interfering with navigation
   }
 
   // Add security headers

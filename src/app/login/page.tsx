@@ -16,18 +16,29 @@ export default function LoginPage() {
   const router = useRouter()
 
   const checkUserApproval = useCallback(async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_approved, role')
-      .eq('id', userId)
-      .single()
-
-    if (profile?.is_approved) {
-      router.push('/app')
-    } else {
-      router.push('/pending-approval')
+    try {
+      console.log('[LoginPage] Checking user approval for:', userId)
+      const response = await fetch('/api/profile')
+      
+      if (!response.ok) {
+        console.error('[LoginPage] API error:', response.status, response.statusText)
+        return
+      }
+      
+      const { profile } = await response.json()
+      console.log('[LoginPage] Profile received:', profile)
+      
+      if (profile?.is_approved) {
+        console.log('[LoginPage] User approved, redirecting to /app')
+        router.push('/app')
+      } else {
+        console.log('[LoginPage] User not approved, redirecting to /pending-approval')
+        router.push('/pending-approval')
+      }
+    } catch (error) {
+      console.error('[LoginPage] Error checking approval:', error)
     }
-  }, [supabase, router])
+  }, [router])
 
   useEffect(() => {
     const {
