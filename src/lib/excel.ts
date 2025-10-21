@@ -1,23 +1,6 @@
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import { ShopifyProduct } from '@/lib/shopify'
 import fetch from 'node-fetch'
-
-// Helper function to fetch image as base64
-async function fetchImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) return null
-    
-    const arrayBuffer = await response.arrayBuffer()
-    const base64 = Buffer.from(arrayBuffer).toString('base64')
-    const contentType = response.headers.get('content-type') || 'image/jpeg'
-    
-    return `data:${contentType};base64,${base64}`
-  } catch (error) {
-    console.error('Error fetching image:', error)
-    return null
-  }
-}
 
 export interface ExcelRow {
   Season: string
@@ -56,10 +39,45 @@ export interface ExcelRow {
 export async function generateExcelFromProducts(products: ShopifyProduct[]): Promise<Buffer> {
   console.log('Starting Excel generation for', products.length, 'products')
   
-  // Convert products to Excel rows
-  const excelRows: ExcelRow[] = []
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('Linesheet')
   
-  // Process products and fetch images
+  // Define columns with headers
+  worksheet.columns = [
+    { header: 'Season', key: 'season', width: 12 },
+    { header: 'Color', key: 'color', width: 15 },
+    { header: 'Style Number', key: 'styleNumber', width: 18 },
+    { header: 'Image', key: 'image', width: 22 },
+    { header: 'Name', key: 'name', width: 30 },
+    { header: 'Wholesale (USD)', key: 'wholesale', width: 15 },
+    { header: 'M.S.R.P. (USD)', key: 'msrp', width: 15 },
+    { header: 'Division', key: 'division', width: 12 },
+    { header: 'Department', key: 'department', width: 12 },
+    { header: 'Category', key: 'category', width: 15 },
+    { header: 'Subcategory', key: 'subcategory', width: 15 },
+    { header: 'Product Note', key: 'productNote', width: 20 },
+    { header: 'Ship Start', key: 'shipStart', width: 12 },
+    { header: 'Ship End', key: 'shipEnd', width: 12 },
+    { header: 'Prebook', key: 'prebook', width: 10 },
+    { header: 'Total Price (USD)', key: 'totalPrice', width: 15 },
+    { header: 'Total Units', key: 'totalUnits', width: 12 },
+    { header: 'Size 1', key: 'size1', width: 8 },
+    { header: 'Qty 1', key: 'qty1', width: 8 },
+    { header: 'Size 2', key: 'size2', width: 8 },
+    { header: 'Qty 2', key: 'qty2', width: 8 },
+    { header: 'Size 3', key: 'size3', width: 8 },
+    { header: 'Qty 3', key: 'qty3', width: 8 },
+    { header: 'Size 4', key: 'size4', width: 8 },
+    { header: 'Qty 4', key: 'qty4', width: 8 },
+    { header: 'Size 5', key: 'size5', width: 8 },
+    { header: 'Qty 5', key: 'qty5', width: 8 },
+    { header: 'Size 6', key: 'size6', width: 8 },
+    { header: 'Qty 6', key: 'qty6', width: 8 },
+    { header: 'Size 7', key: 'size7', width: 8 },
+    { header: 'Qty 7', key: 'qty7', width: 8 },
+  ]
+  
+  // Process each product
   for (let i = 0; i < products.length; i++) {
     const product = products[i]
     console.log(`Processing product ${i + 1}/${products.length}:`, product.title)
@@ -69,162 +87,160 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
       const season = getMetafieldValue(product, 'season') || ''
       const color = getColorFromProduct(product) || ''
       const styleNumber = getMetafieldValue(product, 'style_number') || ''
+      const name = product.title
+      const wholesalePrice = getWholesalePrice(product)
+      const msrpPrice = getMSRPPrice(product)
+      const division = getMetafieldValue(product, 'division') || ''
+      const department = getMetafieldValue(product, 'department') || ''
+      const category = product.productType || ''
+      const subcategory = getMetafieldValue(product, 'subcategory') || ''
+      const productNote = getMetafieldValue(product, 'product_note') || ''
+      const shipStart = getMetafieldValue(product, 'ship_start') || ''
+      const shipEnd = getMetafieldValue(product, 'ship_end') || ''
+      const prebook = getMetafieldValue(product, 'prebook') || ''
       
-      // Handle image - fetch as base64 if URL exists
-      let imageData = ''
+      // Calculate totals
+      const totalPrice = wholesalePrice
+      const totalUnits = getTotalUnits(product)
+      
+      // Extract sizes and quantities
+      const sizes = getSizesFromProduct(product)
+      const quantities = getQuantitiesFromProduct(product)
+      
+      const rowIndex = i + 2 // +2 because row 1 is headers
+      
+      // Add product data to row
+      const row = worksheet.addRow({
+        season: season,
+        color: color,
+        styleNumber: styleNumber,
+        image: '', // Will be handled separately
+        name: name,
+        wholesale: wholesalePrice,
+        msrp: msrpPrice,
+        division: division,
+        department: department,
+        category: category,
+        subcategory: subcategory,
+        productNote: productNote,
+        shipStart: shipStart,
+        shipEnd: shipEnd,
+        prebook: prebook,
+        totalPrice: totalPrice,
+        totalUnits: totalUnits,
+        size1: sizes[0] || '',
+        qty1: quantities[0] || 0,
+        size2: sizes[1] || '',
+        qty2: quantities[1] || 0,
+        size3: sizes[2] || '',
+        qty3: quantities[2] || 0,
+        size4: sizes[3] || '',
+        qty4: quantities[3] || 0,
+        size5: sizes[4] || '',
+        qty5: quantities[4] || 0,
+        size6: sizes[5] || '',
+        qty6: quantities[5] || 0,
+        size7: sizes[6] || '',
+        qty7: quantities[6] || 0,
+      })
+      
+      // Set row height for image (150px = 112.5 points)
+      row.height = 112.5
+      
+      // Handle image
       if (product.images.edges.length > 0) {
-        const imageUrl = product.images.edges[0].node.url
-        console.log('Fetching image for', product.title, ':', imageUrl)
-        const base64Image = await fetchImageAsBase64(imageUrl)
-        imageData = base64Image || imageUrl // Fallback to URL if base64 fails
-        console.log('Image data length:', imageData.length)
+        try {
+          const imageUrl = product.images.edges[0].node.url
+          console.log('Fetching image for', product.title, ':', imageUrl)
+          
+          const response = await fetch(imageUrl)
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          }
+          
+          const buffer = await response.buffer()
+          console.log('Image downloaded, size:', buffer.length, 'bytes')
+          
+          // Determine image extension from content type or URL
+          const contentType = response.headers.get('content-type') || ''
+          let extension = 'jpeg'
+          if (contentType.includes('png')) extension = 'png'
+          else if (contentType.includes('gif')) extension = 'gif'
+          else if (contentType.includes('webp')) extension = 'webp'
+          
+          const imageId = workbook.addImage({
+            buffer: buffer,
+            extension: extension,
+          })
+          
+          // Position image in Image column (column D, index 3) at 150x150 pixels
+          worksheet.addImage(imageId, {
+            tl: { col: 3, row: rowIndex - 1 },
+            ext: { width: 150, height: 150 },
+          })
+          
+          console.log(`Image embedded for product ${i + 1}:`, product.title)
+          
+        } catch (error) {
+          console.error(`Error downloading image for product ${i + 1} (${product.title}):`, error)
+          // Write "Image missing" if download fails
+          worksheet.getCell(rowIndex, 4).value = 'Image missing'
+        }
+      } else {
+        console.log(`No image for product ${i + 1}:`, product.title)
+        worksheet.getCell(rowIndex, 4).value = 'Image missing'
       }
-    
-    const name = product.title
-    const wholesalePrice = getWholesalePrice(product)
-    const msrpPrice = getMSRPPrice(product)
-    const division = getMetafieldValue(product, 'division') || ''
-    const department = getMetafieldValue(product, 'department') || ''
-    const category = product.productType || ''
-    const subcategory = getMetafieldValue(product, 'subcategory') || ''
-    const productNote = getMetafieldValue(product, 'product_note') || ''
-    const shipStart = getMetafieldValue(product, 'ship_start') || ''
-    const shipEnd = getMetafieldValue(product, 'ship_end') || ''
-    const prebook = getMetafieldValue(product, 'prebook') || ''
-    
-    // Calculate totals
-    const totalPrice = wholesalePrice
-    const totalUnits = getTotalUnits(product)
-    
-    // Extract sizes and quantities
-    const sizes = getSizesFromProduct(product)
-    const quantities = getQuantitiesFromProduct(product)
-    
-    excelRows.push({
-      Season: season,
-      Color: color,
-      'Style Number': styleNumber,
-      Image: imageData,
-      Name: name,
-      'Wholesale (USD)': wholesalePrice,
-      'M.S.R.P. (USD)': msrpPrice,
-      Division: division,
-      Department: department,
-      Category: category,
-      Subcategory: subcategory,
-      'Product Note': productNote,
-      'Ship Start': shipStart,
-      'Ship End': shipEnd,
-      Prebook: prebook,
-      'Total Price (USD)': totalPrice,
-      'Total Units': totalUnits,
-      'Size 1': sizes[0] || '',
-      'Qty 1': quantities[0] || 0,
-      'Size 2': sizes[1] || '',
-      'Qty 2': quantities[1] || 0,
-      'Size 3': sizes[2] || '',
-      'Qty 3': quantities[2] || 0,
-      'Size 4': sizes[3] || '',
-      'Qty 4': quantities[3] || 0,
-      'Size 5': sizes[4] || '',
-      'Qty 5': quantities[4] || 0,
-      'Size 6': sizes[5] || '',
-      'Qty 6': quantities[5] || 0,
-      'Size 7': sizes[6] || '',
-      'Qty 7': quantities[6] || 0,
-    })
-    
-    console.log(`Successfully processed product ${i + 1}:`, product.title)
-    
+      
+      console.log(`Successfully processed product ${i + 1}:`, product.title)
+      
     } catch (error) {
       console.error(`Error processing product ${i + 1} (${product.title}):`, error)
       // Continue with next product instead of failing completely
-      excelRows.push({
-        Season: '',
-        Color: '',
-        'Style Number': '',
-        Image: '',
-        Name: product.title || 'Error processing product',
-        'Wholesale (USD)': 0,
-        'M.S.R.P. (USD)': 0,
-        Division: '',
-        Department: '',
-        Category: '',
-        Subcategory: '',
-        'Product Note': 'Error processing this product',
-        'Ship Start': '',
-        'Ship End': '',
-        Prebook: '',
-        'Total Price (USD)': 0,
-        'Total Units': 0,
-        'Size 1': '',
-        'Qty 1': 0,
-        'Size 2': '',
-        'Qty 2': 0,
-        'Size 3': '',
-        'Qty 3': 0,
-        'Size 4': '',
-        'Qty 4': 0,
-        'Size 5': '',
-        'Qty 5': 0,
-        'Size 6': '',
-        'Qty 6': 0,
-        'Size 7': '',
-        'Qty 7': 0,
+      const rowIndex = i + 2
+      const row = worksheet.addRow({
+        season: '',
+        color: '',
+        styleNumber: '',
+        image: '',
+        name: product.title || 'Error processing product',
+        wholesale: 0,
+        msrp: 0,
+        division: '',
+        department: '',
+        category: '',
+        subcategory: '',
+        productNote: 'Error processing this product',
+        shipStart: '',
+        shipEnd: '',
+        prebook: '',
+        totalPrice: 0,
+        totalUnits: 0,
+        size1: '',
+        qty1: 0,
+        size2: '',
+        qty2: 0,
+        size3: '',
+        qty3: 0,
+        size4: '',
+        qty4: 0,
+        size5: '',
+        qty5: 0,
+        size6: '',
+        qty6: 0,
+        size7: '',
+        qty7: 0,
       })
+      row.height = 112.5
+      worksheet.getCell(rowIndex, 4).value = 'Image missing'
     }
   }
-
-  console.log('Creating Excel workbook with', excelRows.length, 'rows')
+  
+  console.log('Creating Excel workbook with', products.length, 'rows')
   
   try {
-    // Create workbook and worksheet
-    const workbook = XLSX.utils.book_new()
-    const worksheet = XLSX.utils.json_to_sheet(excelRows)
-
-    // Set column widths
-    const columnWidths = [
-      { wch: 10 }, // Season
-      { wch: 12 }, // Color
-      { wch: 15 }, // Style Number
-      { wch: 30 }, // Image (wider for images)
-      { wch: 25 }, // Name
-      { wch: 15 }, // Wholesale
-      { wch: 15 }, // MSRP
-      { wch: 12 }, // Division
-      { wch: 12 }, // Department
-      { wch: 15 }, // Category
-      { wch: 15 }, // Subcategory
-      { wch: 20 }, // Product Note
-      { wch: 12 }, // Ship Start
-      { wch: 12 }, // Ship End
-      { wch: 10 }, // Prebook
-      { wch: 15 }, // Total Price
-      { wch: 12 }, // Total Units
-      { wch: 8 },  // Size 1
-      { wch: 8 },  // Qty 1
-      { wch: 8 },  // Size 2
-      { wch: 8 },  // Qty 2
-      { wch: 8 },  // Size 3
-      { wch: 8 },  // Qty 3
-      { wch: 8 },  // Size 4
-      { wch: 8 },  // Qty 4
-      { wch: 8 },  // Size 5
-      { wch: 8 },  // Qty 5
-      { wch: 8 },  // Size 6
-      { wch: 8 },  // Qty 6
-      { wch: 8 },  // Size 7
-      { wch: 8 },  // Qty 7
-    ]
-    
-    worksheet['!cols'] = columnWidths
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Linesheet')
-
     console.log('Generating Excel buffer...')
     // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+    const buffer = await workbook.xlsx.writeBuffer()
     console.log('Excel buffer generated successfully, size:', buffer.length, 'bytes')
     
     return buffer
