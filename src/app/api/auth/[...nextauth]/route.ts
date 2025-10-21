@@ -1,3 +1,10 @@
+import { NextRequest } from 'next/server'
 import NextAuth from '@/lib/auth-config'
 
-export const { GET, POST } = NextAuth
+export async function GET(request: NextRequest) {
+  return NextAuth(request)
+}
+
+export async function POST(request: NextRequest) {
+  return NextAuth(request)
+}
