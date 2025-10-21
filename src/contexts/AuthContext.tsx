@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { createSupabaseClient, getSupabaseAdmin } from '@/lib/supabase'
+import { createSupabaseClient } from '@/lib/supabase'
 import { Profile } from '@/lib/supabase'
 
 interface AuthContextType {
@@ -26,42 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('[AuthContext] Loading profile for user:', userId)
       
-      // Try with regular client first
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.error('[AuthContext] Error with regular client:', error)
-        
-        // Fallback to admin client if RLS blocks access
-        console.log('[AuthContext] Trying with admin client...')
-        const supabaseAdmin = getSupabaseAdmin()
-        const { data: adminData, error: adminError } = await supabaseAdmin
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single()
-          
-        if (adminError) {
-          console.error('[AuthContext] Error with admin client:', adminError)
-          throw adminError
-        }
-        
-        console.log('[AuthContext] Profile loaded with admin client:', adminData)
-        setProfile(adminData)
-        return
+      // Use API route instead of direct database access
+      const response = await fetch('/api/profile')
+      
+      if (!response.ok) {
+        console.error('[AuthContext] API error:', response.status, response.statusText)
+        throw new Error(`API error: ${response.status}`)
       }
       
-      console.log('[AuthContext] Profile loaded successfully:', data)
-      setProfile(data)
+      const { profile } = await response.json()
+      console.log('[AuthContext] Profile loaded via API:', profile)
+      setProfile(profile)
+      
     } catch (error) {
       console.error('[AuthContext] Error loading profile:', error)
       setProfile(null)
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     // Get initial session
