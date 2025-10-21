@@ -77,8 +77,7 @@ export async function POST(request: NextRequest) {
     await db.user.update({
       where: { id: user.id },
       data: { 
-        isActive: false,
-        emailVerified: true // Skip email verification, admin approval is sufficient
+        isActive: false // Admin approval required
       }
     })
 
