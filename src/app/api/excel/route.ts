@@ -14,12 +14,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Starting Excel generation for', products.length, 'products')
+    
     // Generate Excel file
     const excelBuffer = await generateExcelFromProducts(products as ShopifyProduct[])
+    
+    console.log('Excel generation completed, buffer size:', excelBuffer.length)
 
     // Create filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0]
     const filename = `linesheet-${config?.season || 'export'}-${timestamp}.xlsx`
+
+    console.log('Returning Excel file:', filename)
 
     // Return Excel file
     return new NextResponse(new Uint8Array(excelBuffer), {

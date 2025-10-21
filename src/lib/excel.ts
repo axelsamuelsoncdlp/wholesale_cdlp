@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx'
 import { ShopifyProduct } from '@/lib/shopify'
+import fetch from 'node-fetch'
 
 // Helper function to fetch image as base64
 async function fetchImageAsBase64(url: string): Promise<string | null> {
@@ -53,23 +54,31 @@ export interface ExcelRow {
 }
 
 export async function generateExcelFromProducts(products: ShopifyProduct[]): Promise<Buffer> {
+  console.log('Starting Excel generation for', products.length, 'products')
+  
   // Convert products to Excel rows
   const excelRows: ExcelRow[] = []
   
   // Process products and fetch images
-  for (const product of products) {
-    // Extract data from product
-    const season = getMetafieldValue(product, 'season') || ''
-    const color = getColorFromProduct(product) || ''
-    const styleNumber = getMetafieldValue(product, 'style_number') || ''
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i]
+    console.log(`Processing product ${i + 1}/${products.length}:`, product.title)
     
-    // Handle image - fetch as base64 if URL exists
-    let imageData = ''
-    if (product.images.edges.length > 0) {
-      const imageUrl = product.images.edges[0].node.url
-      const base64Image = await fetchImageAsBase64(imageUrl)
-      imageData = base64Image || imageUrl // Fallback to URL if base64 fails
-    }
+    try {
+      // Extract data from product
+      const season = getMetafieldValue(product, 'season') || ''
+      const color = getColorFromProduct(product) || ''
+      const styleNumber = getMetafieldValue(product, 'style_number') || ''
+      
+      // Handle image - fetch as base64 if URL exists
+      let imageData = ''
+      if (product.images.edges.length > 0) {
+        const imageUrl = product.images.edges[0].node.url
+        console.log('Fetching image for', product.title, ':', imageUrl)
+        const base64Image = await fetchImageAsBase64(imageUrl)
+        imageData = base64Image || imageUrl // Fallback to URL if base64 fails
+        console.log('Image data length:', imageData.length)
+      }
     
     const name = product.title
     const wholesalePrice = getWholesalePrice(product)
@@ -124,55 +133,105 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
       'Size 7': sizes[6] || '',
       'Qty 7': quantities[6] || 0,
     })
+    
+    console.log(`Successfully processed product ${i + 1}:`, product.title)
+    
+    } catch (error) {
+      console.error(`Error processing product ${i + 1} (${product.title}):`, error)
+      // Continue with next product instead of failing completely
+      excelRows.push({
+        Season: '',
+        Color: '',
+        'Style Number': '',
+        Image: '',
+        Name: product.title || 'Error processing product',
+        'Wholesale (USD)': 0,
+        'M.S.R.P. (USD)': 0,
+        Division: '',
+        Department: '',
+        Category: '',
+        Subcategory: '',
+        'Product Note': 'Error processing this product',
+        'Ship Start': '',
+        'Ship End': '',
+        Prebook: '',
+        'Total Price (USD)': 0,
+        'Total Units': 0,
+        'Size 1': '',
+        'Qty 1': 0,
+        'Size 2': '',
+        'Qty 2': 0,
+        'Size 3': '',
+        'Qty 3': 0,
+        'Size 4': '',
+        'Qty 4': 0,
+        'Size 5': '',
+        'Qty 5': 0,
+        'Size 6': '',
+        'Qty 6': 0,
+        'Size 7': '',
+        'Qty 7': 0,
+      })
+    }
   }
 
-  // Create workbook and worksheet
-  const workbook = XLSX.utils.book_new()
-  const worksheet = XLSX.utils.json_to_sheet(excelRows)
-
-  // Set column widths
-  const columnWidths = [
-    { wch: 10 }, // Season
-    { wch: 12 }, // Color
-    { wch: 15 }, // Style Number
-    { wch: 30 }, // Image (wider for images)
-    { wch: 25 }, // Name
-    { wch: 15 }, // Wholesale
-    { wch: 15 }, // MSRP
-    { wch: 12 }, // Division
-    { wch: 12 }, // Department
-    { wch: 15 }, // Category
-    { wch: 15 }, // Subcategory
-    { wch: 20 }, // Product Note
-    { wch: 12 }, // Ship Start
-    { wch: 12 }, // Ship End
-    { wch: 10 }, // Prebook
-    { wch: 15 }, // Total Price
-    { wch: 12 }, // Total Units
-    { wch: 8 },  // Size 1
-    { wch: 8 },  // Qty 1
-    { wch: 8 },  // Size 2
-    { wch: 8 },  // Qty 2
-    { wch: 8 },  // Size 3
-    { wch: 8 },  // Qty 3
-    { wch: 8 },  // Size 4
-    { wch: 8 },  // Qty 4
-    { wch: 8 },  // Size 5
-    { wch: 8 },  // Qty 5
-    { wch: 8 },  // Size 6
-    { wch: 8 },  // Qty 6
-    { wch: 8 },  // Size 7
-    { wch: 8 },  // Qty 7
-  ]
+  console.log('Creating Excel workbook with', excelRows.length, 'rows')
   
-  worksheet['!cols'] = columnWidths
+  try {
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new()
+    const worksheet = XLSX.utils.json_to_sheet(excelRows)
 
-  // Add worksheet to workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Linesheet')
+    // Set column widths
+    const columnWidths = [
+      { wch: 10 }, // Season
+      { wch: 12 }, // Color
+      { wch: 15 }, // Style Number
+      { wch: 30 }, // Image (wider for images)
+      { wch: 25 }, // Name
+      { wch: 15 }, // Wholesale
+      { wch: 15 }, // MSRP
+      { wch: 12 }, // Division
+      { wch: 12 }, // Department
+      { wch: 15 }, // Category
+      { wch: 15 }, // Subcategory
+      { wch: 20 }, // Product Note
+      { wch: 12 }, // Ship Start
+      { wch: 12 }, // Ship End
+      { wch: 10 }, // Prebook
+      { wch: 15 }, // Total Price
+      { wch: 12 }, // Total Units
+      { wch: 8 },  // Size 1
+      { wch: 8 },  // Qty 1
+      { wch: 8 },  // Size 2
+      { wch: 8 },  // Qty 2
+      { wch: 8 },  // Size 3
+      { wch: 8 },  // Qty 3
+      { wch: 8 },  // Size 4
+      { wch: 8 },  // Qty 4
+      { wch: 8 },  // Size 5
+      { wch: 8 },  // Qty 5
+      { wch: 8 },  // Size 6
+      { wch: 8 },  // Qty 6
+      { wch: 8 },  // Size 7
+      { wch: 8 },  // Qty 7
+    ]
+    
+    worksheet['!cols'] = columnWidths
 
-  // Generate buffer
-  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
-  return buffer
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Linesheet')
+
+    console.log('Generating Excel buffer...')
+    // Generate buffer
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+    console.log('Excel buffer generated successfully, size:', buffer.length, 'bytes')
+    
+    return buffer
+  } catch (error) {
+    console.error('Error creating Excel workbook:', error)
+    throw new Error(`Failed to create Excel workbook: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 }
 
 // Helper functions
