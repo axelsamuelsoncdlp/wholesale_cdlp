@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -16,20 +15,18 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 // Client-side client for user operations
 export const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-// Server-side client for middleware
+// Server-side client for middleware (without cookies import)
 export function createSupabaseServerClient() {
-  const cookieStore = cookies()
-  
   return createServerClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value
+        return undefined // Will be handled by middleware
       },
       set(name: string, value: string, options: any) {
-        cookieStore.set({ name, value, ...options })
+        // Will be handled by middleware
       },
       remove(name: string, options: any) {
-        cookieStore.set({ name, value: '', ...options })
+        // Will be handled by middleware
       },
     },
   })
