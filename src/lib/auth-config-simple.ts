@@ -48,7 +48,9 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             role: user.role,
-            name: user.email
+            name: user.email,
+            mfaEnabled: user.mfa_enabled || false,
+            isActive: user.is_active || false
           }
         } catch (error) {
           console.error('Auth error:', error)
@@ -68,6 +70,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+        token.mfaEnabled = user.mfaEnabled
+        token.isActive = user.isActive
       }
       return token
     },
@@ -75,6 +79,8 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        session.user.mfaEnabled = token.mfaEnabled as boolean
+        session.user.isActive = token.isActive as boolean
       }
       return session
     }
