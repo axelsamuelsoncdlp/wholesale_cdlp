@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const filename = `linesheet-${config?.season || 'export'}-${timestamp}.xlsx`
 
     // Return Excel file
-    return new NextResponse(excelBuffer, {
+    return new NextResponse(excelBuffer.buffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
