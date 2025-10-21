@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth-config'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth-config'
 import { db } from '@/lib/db'
 import { enableMFA } from '@/lib/auth'
 import { verifyMFACode } from '@/lib/mfa'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function POST(request: NextRequest) {
-  const session = await getSession()
+  const session = await getServerSession(authOptions)
   
   if (!session?.user?.id) {
     return NextResponse.json(
