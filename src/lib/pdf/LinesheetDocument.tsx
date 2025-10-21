@@ -212,10 +212,10 @@ export function LinesheetDocument({ products, config }: LinesheetDocumentProps) 
           {/* Header */}
           <View style={styles.header}>
             {config.logoUrl && (
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image
                 style={styles.logo}
                 src={config.logoUrl}
-                alt=""
               />
             )}
             {config.headerTitle && (

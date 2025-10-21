@@ -15,9 +15,11 @@ export async function GET(request: NextRequest) {
           get(name: string) {
             return request.cookies.get(name)?.value
           },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           set(_name: string, _value: string, _options: Record<string, unknown>) {
             // Will be handled by response
           },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           remove(_name: string, _options: Record<string, unknown>) {
             // Will be handled by response
           },
