@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase'
 
 const SHOPIFY_API_VERSION = '2024-10'
 
@@ -270,21 +270,30 @@ export async function exchangeCodeForToken(
 
 // Database helpers
 export async function saveShop(shop: string, accessToken: string) {
-  return db.shop.upsert({
-    where: { domain: shop },
-    update: { accessToken },
-    create: {
+  const { data, error } = await supabaseAdmin
+    .from('shops')
+    .upsert({
       id: shop,
       domain: shop,
-      accessToken,
-    },
-  })
+      access_token: accessToken,
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
 }
 
 export async function getShop(shop: string) {
-  return db.shop.findUnique({
-    where: { domain: shop },
-  })
+  const { data, error } = await supabaseAdmin
+    .from('shops')
+    .select('*')
+    .eq('domain', shop)
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error
+  return data
 }
 
 // Utility functions

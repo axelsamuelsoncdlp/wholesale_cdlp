@@ -58,16 +58,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create login_attempts table
-CREATE TABLE IF NOT EXISTS login_attempts (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  email VARCHAR(255) NOT NULL,
-  ip VARCHAR(45) NOT NULL,
-  user_agent TEXT,
-  success BOOLEAN NOT NULL,
-  failure_reason TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create shops table
+CREATE TABLE IF NOT EXISTS shops (
+  id VARCHAR(255) PRIMARY KEY,
+  domain VARCHAR(255) UNIQUE NOT NULL,
+  access_token TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Create indexes for shops
+CREATE INDEX IF NOT EXISTS idx_shops_domain ON shops(domain);
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -97,6 +98,7 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_sessions_updated_at BEFORE UPDATE ON sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_shops_updated_at BEFORE UPDATE ON shops FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
