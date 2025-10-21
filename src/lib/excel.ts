@@ -162,8 +162,7 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           console.log('Image downloaded, size:', buffer.length, 'bytes')
           
           // Convert to Node.js Buffer for exceljs compatibility
-          const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
-          const nodeBuffer = Buffer.from(uint8Array)
+          const nodeBuffer = Buffer.from(buffer)
           
           // Determine image extension from content type or URL
           const contentType = response.headers.get('content-type') || ''
@@ -173,7 +172,7 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           else if (contentType.includes('webp')) extension = 'webp'
           
           const imageId = workbook.addImage({
-            buffer: nodeBuffer,
+            buffer: nodeBuffer as any,
             extension: extension,
           })
           
