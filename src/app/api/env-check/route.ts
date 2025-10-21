@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   // Simple environment check (safe values only)
   const envCheck = {
     hasApiKey: !!process.env.NEXT_PUBLIC_SHOPIFY_API_KEY,

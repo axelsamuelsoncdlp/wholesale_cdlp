@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getShop, ShopifyClient, createStaticShopifyClient } from '@/lib/shopify'
-import { logSecurityEvent, sanitizeInput } from '@/lib/security'
+import { logSecurityEvent } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'

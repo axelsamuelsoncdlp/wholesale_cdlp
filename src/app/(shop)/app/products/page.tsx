@@ -159,7 +159,7 @@ export default function ProductsPage() {
   // Handle select all
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      filteredProducts.forEach(product => addSelectedProduct(product))
+      displayProducts.forEach(product => addSelectedProduct(product))
     } else {
       clearSelectedProducts()
     }

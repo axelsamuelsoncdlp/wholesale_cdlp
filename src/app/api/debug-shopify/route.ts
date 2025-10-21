@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createStaticShopifyClient, getStaticAccessToken } from '@/lib/shopify'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const shop = 'cdlpstore'
     
