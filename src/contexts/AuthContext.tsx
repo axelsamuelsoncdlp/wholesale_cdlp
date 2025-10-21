@@ -24,16 +24,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadProfile = useCallback(async (userId: string) => {
     try {
+      console.log('[AuthContext] Loading profile for user:', userId)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('[AuthContext] Error loading profile:', error)
+        throw error
+      }
+      
+      console.log('[AuthContext] Profile loaded successfully:', data)
       setProfile(data)
     } catch (error) {
-      console.error('Error loading profile:', error)
+      console.error('[AuthContext] Error loading profile:', error)
       setProfile(null)
     }
   }, [supabase])
@@ -41,11 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
+      console.log('[AuthContext] Getting initial session...')
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('[AuthContext] Initial session:', session ? 'Found' : 'None')
+      
       setSession(session)
       setUser(session?.user ?? null)
       
       if (session?.user) {
+        console.log('[AuthContext] User found, loading profile...')
         await loadProfile(session.user.id)
       }
       
@@ -58,10 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('[AuthContext] Auth state change:', event, session ? 'Session found' : 'No session')
       setSession(session)
       setUser(session?.user ?? null)
       
       if (session?.user) {
+        console.log('[AuthContext] User found in auth change, loading profile...')
         await loadProfile(session.user.id)
       } else {
         setProfile(null)
