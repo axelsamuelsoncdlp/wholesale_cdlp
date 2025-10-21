@@ -90,8 +90,7 @@ export async function createUser(email: string, hashedPassword: string, role: 'A
     data: {
       email,
       hashedPassword,
-      role,
-      emailVerified: false
+      role
     }
   })
 }
@@ -264,13 +263,8 @@ export async function updateUserLastLogin(userId: string, ip: string) {
 
 // Email verification
 export async function verifyUserEmail(userId: string) {
-  return db.user.update({
-    where: { id: userId },
-    data: {
-      emailVerified: true,
-      emailVerifiedAt: new Date()
-    }
-  })
+  // Email verification removed - admin approval only
+  return db.user.findUnique({ where: { id: userId } })
 }
 
 // MFA setup
@@ -333,17 +327,15 @@ export async function deactivateUser(userId: string, reason: string) {
 
 // Get user statistics
 export async function getUserStats() {
-  const [totalUsers, activeUsers, adminUsers, verifiedUsers] = await Promise.all([
+  const [totalUsers, activeUsers, adminUsers] = await Promise.all([
     db.user.count(),
     db.user.count({ where: { isActive: true } }),
-    db.user.count({ where: { role: 'ADMIN' } }),
-    db.user.count({ where: { emailVerified: true } })
+    db.user.count({ where: { role: 'ADMIN' } })
   ])
 
   return {
     totalUsers,
     activeUsers,
-    adminUsers,
-    verifiedUsers
+    adminUsers
   }
 }

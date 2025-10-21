@@ -142,7 +142,6 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             role: user.role,
             mfaEnabled: user.mfaEnabled,
-            emailVerified: user.emailVerified,
             isActive: user.isActive // Include isActive in user object
           }
         } catch (error) {

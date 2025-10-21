@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
         email: true,
         role: true,
         mfaEnabled: true,
-        emailVerified: true,
         lastLoginAt: true,
         lastLoginIp: true,
         isActive: true,

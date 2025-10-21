@@ -24,7 +24,6 @@ interface User {
   email: string
   role: 'ADMIN' | 'STANDARD'
   mfaEnabled: boolean
-  emailVerified: boolean
   lastLoginAt: string | null
   lastLoginIp: string | null
   isActive: boolean
@@ -315,15 +314,15 @@ export default function AdminUsersPage() {
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
-                              {user.emailVerified ? (
+                              {user.isActive ? (
                                 <Badge variant="outline" className="text-green-600">
-                                  <Mail className="h-3 w-3 mr-1" />
-                                  Verified
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Active
                                 </Badge>
                               ) : (
                                 <Badge variant="outline" className="text-red-600">
-                                  <Mail className="h-3 w-3 mr-1" />
-                                  Unverified
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Pending
                                 </Badge>
                               )}
                               {user.mfaEnabled ? (
