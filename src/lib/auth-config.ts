@@ -164,7 +164,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.mfaEnabled = user.mfaEnabled
-        token.emailVerified = user.emailVerified
+        token.emailVerified = user.emailVerified ?? false
         token.isActive = user.isActive // Add isActive to JWT
       }
       return token
