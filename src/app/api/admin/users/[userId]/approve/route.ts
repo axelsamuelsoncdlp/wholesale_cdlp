@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth-config'
 import { db } from '@/lib/db'
-import { sendUserApprovedEmail } from '@/lib/email'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function POST(
@@ -44,9 +43,6 @@ export async function POST(
       where: { id: userId },
       data: { isActive: true }
     })
-
-    // Send approval email to user
-    await sendUserApprovedEmail(user.email)
 
     logSecurityEvent({
       event: 'user_approved',

@@ -4,7 +4,6 @@ import {
   validateEmailDomain, 
   enforcePasswordPolicy
 } from '@/lib/auth'
-import { sendAdminNotificationEmail } from '@/lib/email'
 import { db } from '@/lib/db'
 import { logSecurityEvent } from '@/lib/security'
 
@@ -81,22 +80,18 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Send admin notification email
-    const emailSent = await sendAdminNotificationEmail(email, user.id)
-
     logSecurityEvent({
       event: 'user_registered_pending_approval',
       userId: user.id,
       severity: 'low',
       details: {
         email,
-        ip,
-        emailSent
+        ip
       }
     })
 
     return NextResponse.json({
-      message: 'Registration successful! Your account is pending admin approval. You will be notified once approved.',
+      message: 'Registration successful! Your account is pending admin approval. Contact your administrator for access.',
       userId: user.id,
       status: 'pending_approval'
     })

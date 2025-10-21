@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs'
 import { authenticator } from 'otplib'
-import { randomBytes } from 'crypto'
 import { db } from './db'
 import { logSecurityEvent } from './security'
 

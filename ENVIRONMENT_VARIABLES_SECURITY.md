@@ -15,15 +15,6 @@ NEXTAUTH_SECRET=your-64-character-secret-key-here
 DATABASE_URL=postgresql://username:password@host:port/database
 ```
 
-### Email Configuration (SendGrid)
-```bash
-EMAIL_SERVER_HOST=smtp.sendgrid.net
-EMAIL_SERVER_PORT=587
-EMAIL_SERVER_USER=apikey
-EMAIL_SERVER_PASSWORD=your-sendgrid-api-key
-EMAIL_FROM=noreply@cdlp.com
-```
-
 ### Security
 ```bash
 ENCRYPTION_KEY=your-32-character-encryption-key

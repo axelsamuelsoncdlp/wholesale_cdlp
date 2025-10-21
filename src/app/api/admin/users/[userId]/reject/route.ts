@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth-config'
 import { db } from '@/lib/db'
-import { sendUserRejectedEmail } from '@/lib/email'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function POST(
@@ -39,9 +38,6 @@ export async function POST(
         { status: 400 }
       )
     }
-
-    // Send rejection email to user
-    await sendUserRejectedEmail(user.email, reason)
 
     // Delete the user account
     await db.user.delete({
