@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth-config'
-import { db } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function POST(
@@ -20,18 +20,20 @@ export async function POST(
   const { userId } = await params
 
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId }
-    })
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
-    if (user.isActive) {
+    if (user.is_active) {
       return NextResponse.json(
         { error: 'User is already approved' },
         { status: 400 }
@@ -39,10 +41,14 @@ export async function POST(
     }
 
     // Activate user
-    const updatedUser = await db.user.update({
-      where: { id: userId },
-      data: { isActive: true }
-    })
+    const { data: updatedUser, error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({ is_active: true })
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (updateError) throw updateError
 
     logSecurityEvent({
       event: 'user_approved',

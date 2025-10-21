@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth-config'
-import { db } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase'
 import { enableMFA } from '@/lib/auth'
 import { verifyMFACode } from '@/lib/mfa'
 import { logSecurityEvent } from '@/lib/security'

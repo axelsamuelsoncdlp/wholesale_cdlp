@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth-config'
-import { db } from '@/lib/db'
+import { supabaseAdmin } from '@/lib/supabase'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function GET(request: NextRequest) {
@@ -15,21 +15,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const users = await db.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        mfaEnabled: true,
-        lastLoginAt: true,
-        lastLoginIp: true,
-        isActive: true,
-        createdAt: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    const { data: users, error } = await supabaseAdmin
+      .from('users')
+      .select(`
+        id,
+        email,
+        role,
+        mfa_enabled,
+        last_login_at,
+        last_login_ip,
+        is_active,
+        created_at
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
 
     return NextResponse.json({
       users

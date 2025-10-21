@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { 
   createUser, 
   validateEmailDomain, 
-  enforcePasswordPolicy
+  enforcePasswordPolicy,
+  hashPassword
 } from '@/lib/auth'
-import { db } from '@/lib/db'
 import { logSecurityEvent } from '@/lib/security'
 
 export async function POST(request: NextRequest) {
@@ -52,33 +52,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUser = await db.user.findUnique({
-      where: { email }
-    })
-
-    if (existingUser) {
-      logSecurityEvent({
-        event: 'registration_attempt_existing_user',
-        severity: 'low',
-        details: { email, ip }
-      })
-      return NextResponse.json(
-        { error: 'User already exists' },
-        { status: 400 }
-      )
-    }
-
     // Create user with pending approval status
-    const user = await createUser(email, password, 'STANDARD')
-
-    // Set user as inactive (pending admin approval)
-    await db.user.update({
-      where: { id: user.id },
-      data: { 
-        isActive: false // Admin approval required
-      }
-    })
+    const user = await createUser(email, await hashPassword(password), 'STANDARD')
 
     logSecurityEvent({
       event: 'user_registered_pending_approval',
