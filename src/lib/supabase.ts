@@ -1,70 +1,78 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_API_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// For build time, provide fallback values
-const fallbackUrl = 'https://placeholder.supabase.co'
-const fallbackKey = 'placeholder-key'
-
-export const supabase = createClient(
-  supabaseUrl || fallbackUrl, 
-  supabaseKey || fallbackKey
-)
-
-// Simple logo storage functions
-export async function saveLogo(shop: string, logoUrl: string) {
-  try {
-    // Check if we have real Supabase credentials
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_API_KEY) {
-      console.warn('Supabase credentials not available, returning mock success')
-      return { success: true, data: { logo_url: logoUrl } }
-    }
-    const { data, error } = await supabase
-      .from('shops')
-      .upsert({
-        id: shop,
-        domain: shop,
-        logo_url: logoUrl,
-        access_token: 'temp-token',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-    
-    if (error) {
-      console.error('Error saving logo:', error)
-      return { success: false, error: error.message }
-    }
-    
-    return { success: true, data }
-  } catch (error) {
-    console.error('Error saving logo:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+// Server-side client with service role key for admin operations
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
+})
+
+// Client-side client for user operations
+export const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+// Database types
+export interface User {
+  id: string
+  email: string
+  hashed_password?: string
+  role: 'ADMIN' | 'STANDARD'
+  mfa_secret?: string
+  mfa_enabled: boolean
+  last_login_at?: string
+  last_login_ip?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
-export async function getLogo(shop: string) {
-  try {
-    // Check if we have real Supabase credentials
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_API_KEY) {
-      console.warn('Supabase credentials not available, returning null logo')
-      return { success: true, logoUrl: null }
-    }
-    const { data, error } = await supabase
-      .from('shops')
-      .select('logo_url')
-      .eq('domain', shop)
-      .single()
-    
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('Error fetching logo:', error)
-      return { success: false, error: error.message }
-    }
-    
-    return { success: true, logoUrl: data?.logo_url || null }
-  } catch (error) {
-    console.error('Error fetching logo:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
+export interface Account {
+  id: string
+  user_id: string
+  type: string
+  provider: string
+  provider_account_id: string
+  refresh_token?: string
+  access_token?: string
+  expires_at?: number
+  token_type?: string
+  scope?: string
+  id_token?: string
+  session_state?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Session {
+  id: string
+  session_token: string
+  user_id: string
+  expires: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AuditLog {
+  id: string
+  user_id?: string
+  event: string
+  shop?: string
+  ip?: string
+  user_agent?: string
+  details?: Record<string, unknown>
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  created_at: string
+}
+
+export interface LoginAttempt {
+  id: string
+  email: string
+  ip: string
+  user_agent?: string
+  success: boolean
+  failure_reason?: string
+  created_at: string
 }

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { authenticator } from 'otplib'
-import { db } from './db'
+import { supabaseAdmin, User, Account, Session, LoginAttempt } from './supabase'
 import { logSecurityEvent } from './security'
 
 // Password hashing
@@ -66,40 +66,57 @@ export function verifyMFAToken(secret: string, token: string): boolean {
   }
 }
 
-
 // User management
 export async function createUser(email: string, hashedPassword: string, role: 'ADMIN' | 'STANDARD' = 'STANDARD') {
   if (!validateEmailDomain(email)) {
     throw new Error('Only @cdlp.com email addresses are allowed')
   }
 
-  const existingUser = await db.user.findUnique({
-    where: { email }
-  })
+  const { data: existingUser } = await supabaseAdmin
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .single()
 
   if (existingUser) {
     throw new Error('User already exists')
   }
 
-  return db.user.create({
-    data: {
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .insert({
       email,
-      hashedPassword,
-      role
-    }
-  })
+      hashed_password: hashedPassword,
+      role,
+      is_active: false // Admin approval required
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return user
 }
 
 export async function findUserByEmail(email: string) {
-  return db.user.findUnique({
-    where: { email }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error
+  return user
 }
 
 export async function findUserById(id: string) {
-  return db.user.findUnique({
-    where: { id }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error
+  return user
 }
 
 // Login attempt tracking
@@ -111,16 +128,17 @@ export async function recordLoginAttempt(
   reason?: string,
   userId?: string
 ) {
-  await db.loginAttempt.create({
-    data: {
+  const { error } = await supabaseAdmin
+    .from('login_attempts')
+    .insert({
       email,
       ip,
-      userAgent,
+      user_agent: userAgent,
       success,
-      reason,
-      userId
-    }
-  })
+      failure_reason: reason
+    })
+
+  if (error) throw error
 
   // Log security event
   logSecurityEvent({
@@ -136,20 +154,17 @@ export async function recordLoginAttempt(
 
 // Brute force protection
 export async function checkBruteForceProtection(email: string, ip: string): Promise<{ blocked: boolean; reason?: string }> {
-  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000)
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString()
   
   // Check failed attempts by email
-  const emailAttempts = await db.loginAttempt.count({
-    where: {
-      email,
-      success: false,
-      createdAt: {
-        gte: fifteenMinutesAgo
-      }
-    }
-  })
+  const { count: emailAttempts } = await supabaseAdmin
+    .from('login_attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('email', email)
+    .eq('success', false)
+    .gte('created_at', fifteenMinutesAgo)
 
-  if (emailAttempts >= 5) {
+  if (emailAttempts && emailAttempts >= 5) {
     return {
       blocked: true,
       reason: 'Too many failed login attempts for this email'
@@ -157,17 +172,14 @@ export async function checkBruteForceProtection(email: string, ip: string): Prom
   }
 
   // Check failed attempts by IP
-  const ipAttempts = await db.loginAttempt.count({
-    where: {
-      ip,
-      success: false,
-      createdAt: {
-        gte: fifteenMinutesAgo
-      }
-    }
-  })
+  const { count: ipAttempts } = await supabaseAdmin
+    .from('login_attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('ip', ip)
+    .eq('success', false)
+    .gte('created_at', fifteenMinutesAgo)
 
-  if (ipAttempts >= 10) {
+  if (ipAttempts && ipAttempts >= 10) {
     return {
       blocked: true,
       reason: 'Too many failed login attempts from this IP'
@@ -179,10 +191,12 @@ export async function checkBruteForceProtection(email: string, ip: string): Prom
 
 // Account lockout
 export async function lockUserAccount(userId: string, reason: string) {
-  await db.user.update({
-    where: { id: userId },
-    data: { isActive: false }
-  })
+  const { error } = await supabaseAdmin
+    .from('users')
+    .update({ is_active: false })
+    .eq('id', userId)
+
+  if (error) throw error
 
   logSecurityEvent({
     event: 'account_locked',
@@ -194,101 +208,137 @@ export async function lockUserAccount(userId: string, reason: string) {
 
 // Session management
 export async function createSession(userId: string, sessionToken: string, expires: Date) {
-  return db.session.create({
-    data: {
-      userId,
-      sessionToken,
-      expires
-    }
-  })
+  const { data: session, error } = await supabaseAdmin
+    .from('sessions')
+    .insert({
+      user_id: userId,
+      session_token: sessionToken,
+      expires: expires.toISOString()
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return session
 }
 
 export async function findSessionByToken(sessionToken: string) {
-  return db.session.findUnique({
-    where: { sessionToken },
-    include: {
-      user: true
-    }
-  })
+  const { data: session, error } = await supabaseAdmin
+    .from('sessions')
+    .select(`
+      *,
+      users (*)
+    `)
+    .eq('session_token', sessionToken)
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error
+  return session
 }
 
 export async function deleteSession(sessionToken: string) {
-  return db.session.delete({
-    where: { sessionToken }
-  })
+  const { error } = await supabaseAdmin
+    .from('sessions')
+    .delete()
+    .eq('session_token', sessionToken)
+
+  if (error) throw error
 }
 
 export async function deleteAllUserSessions(userId: string) {
-  return db.session.deleteMany({
-    where: { userId }
-  })
+  const { error } = await supabaseAdmin
+    .from('sessions')
+    .delete()
+    .eq('user_id', userId)
+
+  if (error) throw error
 }
 
 // Cleanup expired sessions
 export async function cleanupExpiredSessions() {
-  const deleted = await db.session.deleteMany({
-    where: {
-      expires: {
-        lt: new Date()
-      }
-    }
-  })
+  const now = new Date().toISOString()
+  
+  const { count, error } = await supabaseAdmin
+    .from('sessions')
+    .delete({ count: 'exact' })
+    .lt('expires', now)
 
-  if (deleted.count > 0) {
+  if (error) throw error
+
+  if (count && count > 0) {
     logSecurityEvent({
       event: 'expired_sessions_cleaned',
       severity: 'low',
-      details: { count: deleted.count }
+      details: { count }
     })
   }
 
-  return deleted.count
+  return count || 0
 }
 
 // Update user last login
 export async function updateUserLastLogin(userId: string, ip: string) {
-  return db.user.update({
-    where: { id: userId },
-    data: {
-      lastLoginAt: new Date(),
-      lastLoginIp: ip
-    }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .update({
+      last_login_at: new Date().toISOString(),
+      last_login_ip: ip
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return user
 }
 
 // Email verification
 export async function verifyUserEmail(userId: string) {
   // Email verification removed - admin approval only
-  return db.user.findUnique({ where: { id: userId } })
+  return findUserById(userId)
 }
 
 // MFA setup
 export async function enableMFA(userId: string, secret: string) {
-  return db.user.update({
-    where: { id: userId },
-    data: {
-      mfaSecret: secret,
-      mfaEnabled: true
-    }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .update({
+      mfa_secret: secret,
+      mfa_enabled: true
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return user
 }
 
 export async function disableMFA(userId: string) {
-  return db.user.update({
-    where: { id: userId },
-    data: {
-      mfaSecret: null,
-      mfaEnabled: false
-    }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .update({
+      mfa_secret: null,
+      mfa_enabled: false
+    })
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return user
 }
 
 // Role management
 export async function updateUserRole(userId: string, role: 'ADMIN' | 'STANDARD') {
-  const user = await db.user.update({
-    where: { id: userId },
-    data: { role }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .update({ role })
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
 
   logSecurityEvent({
     event: 'user_role_changed',
@@ -302,10 +352,14 @@ export async function updateUserRole(userId: string, role: 'ADMIN' | 'STANDARD')
 
 // User deactivation
 export async function deactivateUser(userId: string, reason: string) {
-  const user = await db.user.update({
-    where: { id: userId },
-    data: { isActive: false }
-  })
+  const { data: user, error } = await supabaseAdmin
+    .from('users')
+    .update({ is_active: false })
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
 
   // Delete all sessions
   await deleteAllUserSessions(userId)
@@ -322,15 +376,19 @@ export async function deactivateUser(userId: string, reason: string) {
 
 // Get user statistics
 export async function getUserStats() {
-  const [totalUsers, activeUsers, adminUsers] = await Promise.all([
-    db.user.count(),
-    db.user.count({ where: { isActive: true } }),
-    db.user.count({ where: { role: 'ADMIN' } })
+  const [
+    { count: totalUsers },
+    { count: activeUsers },
+    { count: adminUsers }
+  ] = await Promise.all([
+    supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
+    supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'ADMIN')
   ])
 
   return {
-    totalUsers,
-    activeUsers,
-    adminUsers
+    totalUsers: totalUsers || 0,
+    activeUsers: activeUsers || 0,
+    adminUsers: adminUsers || 0
   }
 }

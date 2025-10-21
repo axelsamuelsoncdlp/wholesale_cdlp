@@ -1,8 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { db } from '@/lib/db'
 import { 
   findUserByEmail, 
   verifyPassword, 
@@ -15,7 +13,6 @@ import { verifyMFACode } from '@/lib/mfa'
 import { logSecurityEvent } from '@/lib/security'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -60,7 +57,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Check if account is locked
-          if (!user.isActive) {
+          if (!user.is_active) {
             await recordLoginAttempt(
               credentials.email,
               ip as string,
@@ -73,7 +70,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Verify password
-          const isValidPassword = await verifyPassword(credentials.password, user.hashedPassword!)
+          const isValidPassword = await verifyPassword(credentials.password, user.hashed_password!)
           if (!isValidPassword) {
             await recordLoginAttempt(
               credentials.email,
@@ -87,7 +84,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Handle MFA if enabled
-          if (user.mfaEnabled) {
+          if (user.mfa_enabled) {
             if (!credentials.mfaToken) {
               await recordLoginAttempt(
                 credentials.email,
@@ -100,7 +97,7 @@ export const authOptions: NextAuthOptions = {
               throw new Error('MFA token required')
             }
 
-            const isValidMFA = await verifyMFACode(user.mfaSecret!, credentials.mfaToken)
+            const isValidMFA = await verifyMFACode(user.mfa_secret!, credentials.mfaToken)
             if (!isValidMFA) {
               await recordLoginAttempt(
                 credentials.email,
@@ -133,7 +130,7 @@ export const authOptions: NextAuthOptions = {
               email: user.email,
               ip,
               userAgent,
-              mfaUsed: user.mfaEnabled
+              mfaUsed: user.mfa_enabled
             }
           })
 
@@ -141,8 +138,8 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             role: user.role,
-            mfaEnabled: user.mfaEnabled,
-            isActive: user.isActive // Include isActive in user object
+            mfaEnabled: user.mfa_enabled,
+            isActive: user.is_active // Include isActive in user object
           }
         } catch (error) {
           console.error('Auth error:', error)
