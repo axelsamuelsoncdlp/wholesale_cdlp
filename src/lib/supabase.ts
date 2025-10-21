@@ -14,6 +14,52 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 // Client-side client for user operations
 export const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
+// Logo management functions
+export async function saveLogo(shop: string, logoUrl: string) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('shops')
+      .upsert({
+        id: shop,
+        domain: shop,
+        logo_url: logoUrl,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }
+  }
+}
+
+export async function getLogo(shop: string) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('shops')
+      .select('logo_url')
+      .eq('domain', shop)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+    return { 
+      success: true, 
+      logoUrl: data?.logo_url || null 
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      logoUrl: null
+    }
+  }
+}
+
 // Database types
 export interface User {
   id: string
@@ -75,4 +121,13 @@ export interface LoginAttempt {
   success: boolean
   failure_reason?: string
   created_at: string
+}
+
+export interface Shop {
+  id: string
+  domain: string
+  access_token?: string
+  logo_url?: string
+  created_at: string
+  updated_at: string
 }

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { authenticator } from 'otplib'
-import { supabaseAdmin, User, Account, Session, LoginAttempt } from './supabase'
+import { supabaseAdmin } from './supabase'
 import { logSecurityEvent } from './security'
 
 // Password hashing
