@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { supabaseAdmin } from './supabase'
 
 /**
  * Enterprise-grade security utilities for CDLP Linesheet Generator
@@ -132,12 +133,10 @@ export function logSecurityEvent(event: Omit<SecurityEvent, 'timestamp'>): void 
     timestamp: new Date(),
   }
 
-  // Log to console in development, to external service in production
+  // Log to console for now - we'll implement database logging later
   if (process.env.NODE_ENV === 'development') {
     console.log('[SECURITY EVENT]', securityEvent)
   } else {
-    // In production, send to security monitoring service
-    // TODO: Integrate with external security logging service
     console.log('[SECURITY EVENT]', securityEvent)
   }
 }

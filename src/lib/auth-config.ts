@@ -122,7 +122,7 @@ export const authOptions: NextAuthOptions = {
           )
 
           await updateUserLastLogin(user.id, ip as string)
-          await logSecurityEvent({
+          logSecurityEvent({
             event: 'user_login',
             userId: user.id,
             severity: 'low',
