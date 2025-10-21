@@ -230,8 +230,11 @@ export default function ProductsPage() {
               )}
               
               <Link href="/app/layout">
-                <Button disabled={selectedProducts.length === 0}>
-                  Continue to Layout
+                <Button 
+                  disabled={selectedProducts.length === 0}
+                  className={selectedProducts.length > 0 ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                >
+                  Continue to Layout ({selectedProducts.length})
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
@@ -293,6 +296,26 @@ export default function ProductsPage() {
             Show selected only
           </label>
         </div>
+        
+        {/* Select All Matching Button */}
+        {(debouncedSearch || selectedCollection || selectedTag) && (
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                displayProducts.forEach(product => {
+                  if (!isProductSelected(product.id)) {
+                    addSelectedProduct(product)
+                  }
+                })
+              }}
+              className="gap-2"
+            >
+              <Checkbox className="h-4 w-4" />
+              Select All Matching ({displayProducts.length})
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Products Grid */}
