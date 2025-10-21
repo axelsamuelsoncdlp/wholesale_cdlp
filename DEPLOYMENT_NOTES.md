@@ -10,4 +10,4 @@ All enterprise security features are now implemented and ready for production.
 1. Add ENCRYPTION_KEY to Vercel Environment Variables
 2. Trigger new deployment
 3. Test security features
-4. Create Shopify App in Partners Dashboard
+4. Create Shopify App in Partners Dashboard# Deployment trigger - Tue Oct 21 10:58:54 CEST 2025
