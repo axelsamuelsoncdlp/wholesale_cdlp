@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { generateSecret, generateTOTP, verifyTOTP } from '@noble/hashes'
+import { generateSecret, generateTOTP, verifyTOTP } from '@noble/hashes/totp'
 import { randomBytes } from 'crypto'
 import { db } from './db'
 import { logSecurityEvent } from './security'
