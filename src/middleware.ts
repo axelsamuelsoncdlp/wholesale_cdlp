@@ -15,6 +15,7 @@ export async function middleware(request: NextRequest) {
     '/api/logo',
     '/api/test-db',
     '/api/env-check',
+    '/api/debug-shopify',
     '/auth/callback',
     '/_next',
     '/favicon.ico'
