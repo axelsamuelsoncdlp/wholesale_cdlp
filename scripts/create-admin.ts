@@ -1,84 +1,83 @@
 import { createClient } from '@supabase/supabase-js'
-import bcrypt from 'bcryptjs'
 
-// Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing Supabase environment variables')
-  console.log('Required:')
-  console.log('- NEXT_PUBLIC_SUPABASE_URL')
-  console.log('- SUPABASE_SERVICE_ROLE_KEY')
-  process.exit(1)
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-// Email domain validation
-function validateEmailDomain(email: string): boolean {
-  const domain = email.split('@')[1]?.toLowerCase()
-  return domain === 'cdlp.com'
-}
-
-async function createAdminUser(email: string, passwordPlain: string) {
-  if (!validateEmailDomain(email)) {
-    console.error('❌ Fel: Endast @cdlp.com email-adresser är tillåtna.')
-    return
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
+})
 
-  // Kontrollera om användaren redan finns
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select('id')
-    .eq('email', email)
-    .single()
+async function createAdminUser(email: string, password: string) {
+  try {
+    console.log('Creating admin user...')
 
-  if (existingUser) {
-    console.error(`❌ Fel: Användare med email ${email} finns redan.`)
-    return
-  }
-
-  const hashedPassword = await bcrypt.hash(passwordPlain, 12)
-
-  const { data: user, error } = await supabase
-    .from('users')
-    .insert({
+    // Create user in auth.users
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      hashed_password: hashedPassword,
-      role: 'ADMIN',
-      is_active: true, // Admin-konton är aktiva direkt
-      mfa_enabled: false, // MFA måste sättas upp efter första inloggning
+      password,
+      email_confirm: true
     })
-    .select()
-    .single()
 
-  if (error) {
-    console.error('❌ Fel vid skapande av admin-användare:', error.message)
-    return
+    if (authError) {
+      console.error('❌ Error creating auth user:', authError.message)
+      return
+    }
+
+    if (!authData.user) {
+      console.error('❌ No user data returned')
+      return
+    }
+
+    console.log('✅ Auth user created:', authData.user.id)
+
+    // Create profile with admin role
+    const { data: profileData, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        email: email,
+        role: 'ADMIN',
+        is_approved: true
+      })
+      .select()
+      .single()
+
+    if (profileError) {
+      console.error('❌ Error creating profile:', profileError.message)
+      return
+    }
+
+    console.log('✅ Admin profile created successfully!')
+    console.log(`📧 Email: ${email}`)
+    console.log(`👑 Role: ADMIN`)
+    console.log(`✅ Approved: true`)
+    console.log(`🆔 User ID: ${authData.user.id}`)
+    console.log('\n🔐 Admin user created successfully!')
+    console.log(`   Email: ${email}`)
+    console.log(`   Password: ${password}`)
+
+  } catch (error) {
+    console.error('❌ Error creating admin user:', error)
   }
-
-  console.log('✅ Admin-användare skapad framgångsrikt!')
-  console.log(`📧 Email: ${user.email}`)
-  console.log(`👑 Roll: ${user.role}`)
-  console.log(`✅ Aktiv: ${user.is_active}`)
-  console.log(`🆔 User ID: ${user.id}`)
-  console.log('\n🔐 Du kan nu logga in med:')
-  console.log(`   Email: ${email}`)
-  console.log(`   Lösenord: ${passwordPlain}`)
-  console.log('\n⚠️  Glöm inte att sätta upp MFA efter inloggning!')
 }
 
 const email = process.argv[2]
 const password = process.argv[3]
 
 if (!email || !password) {
-  console.error('Användning: npx tsx scripts/create-admin.ts <email> <password>')
+  console.error('Usage: npx tsx scripts/create-admin.ts <email> <password>')
   process.exit(1)
 }
 
 createAdminUser(email, password)
-  .catch((e) => {
-    console.error('❌ Fel vid skapande av admin-användare: ', e)
+  .then(() => {
+    console.log('\n🎉 Admin user creation completed!')
+    process.exit(0)
+  })
+  .catch((error) => {
+    console.error('❌ Failed to create admin user:', error)
     process.exit(1)
   })

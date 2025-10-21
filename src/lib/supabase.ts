@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -13,6 +15,30 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 
 // Client-side client for user operations
 export const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+// Server-side client for middleware
+export function createSupabaseServerClient() {
+  const cookieStore = cookies()
+  
+  return createServerClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value
+      },
+      set(name: string, value: string, options: any) {
+        cookieStore.set({ name, value, ...options })
+      },
+      remove(name: string, options: any) {
+        cookieStore.set({ name, value: '', ...options })
+      },
+    },
+  })
+}
+
+// Client-side helper
+export function createSupabaseClient() {
+  return createBrowserClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+}
 
 // Logo management functions
 export async function saveLogo(shop: string, logoUrl: string) {
@@ -60,67 +86,14 @@ export async function getLogo(shop: string) {
   }
 }
 
-// Database types
-export interface User {
-  id: string
+// Database types for Supabase Auth
+export interface Profile {
+  id: string // UUID matching auth.users.id
   email: string
-  hashed_password?: string
   role: 'ADMIN' | 'STANDARD'
-  mfa_secret?: string
-  mfa_enabled: boolean
-  last_login_at?: string
-  last_login_ip?: string
-  is_active: boolean
+  is_approved: boolean
   created_at: string
   updated_at: string
-}
-
-export interface Account {
-  id: string
-  user_id: string
-  type: string
-  provider: string
-  provider_account_id: string
-  refresh_token?: string
-  access_token?: string
-  expires_at?: number
-  token_type?: string
-  scope?: string
-  id_token?: string
-  session_state?: string
-  created_at: string
-  updated_at: string
-}
-
-export interface Session {
-  id: string
-  session_token: string
-  user_id: string
-  expires: string
-  created_at: string
-  updated_at: string
-}
-
-export interface AuditLog {
-  id: string
-  user_id?: string
-  event: string
-  shop?: string
-  ip?: string
-  user_agent?: string
-  details?: Record<string, unknown>
-  severity: 'low' | 'medium' | 'high' | 'critical'
-  created_at: string
-}
-
-export interface LoginAttempt {
-  id: string
-  email: string
-  ip: string
-  user_agent?: string
-  success: boolean
-  failure_reason?: string
-  created_at: string
 }
 
 export interface Shop {

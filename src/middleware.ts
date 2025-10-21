@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { logSecurityEvent } from '@/lib/security'
+import { createSupabaseServerClient } from '@/lib/supabase'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-  const userAgent = request.headers.get('user-agent') || 'unknown'
 
   // Allow public routes
   const publicRoutes = [
     '/login',
-    '/register',
-    '/verify-email',
-    '/forgot-password',
-    '/reset-password',
-    '/setup-mfa',
+    '/pending-approval',
     '/api/auth',
     '/_next',
     '/favicon.ico'
@@ -28,25 +21,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Get JWT token
-  const token = await getToken({ 
-    req: request, 
-    secret: process.env.NEXTAUTH_SECRET 
-  })
+  // Create Supabase client
+  const supabase = createSupabaseServerClient()
+
+  // Get session
+  const { data: { session } } = await supabase.auth.getSession()
 
   // Check authentication for protected routes
   if (pathname.startsWith('/app') || pathname.startsWith('/api/')) {
-    if (!token) {
-      logSecurityEvent({
-        event: 'unauthorized_access_attempt',
-        severity: 'medium',
-        details: {
-          path: pathname,
-          ip,
-          userAgent
-        }
-      })
-
+    if (!session) {
       if (pathname.startsWith('/app')) {
         return NextResponse.redirect(new URL('/login', request.url))
       } else {
@@ -57,50 +40,19 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Check if user is active (approved)
-    if (!token.isActive) {
-      logSecurityEvent({
-        event: 'inactive_user_access_attempt',
-        userId: token.sub,
-        severity: 'medium',
-        details: {
-          path: pathname,
-          ip,
-          userAgent
-        }
-      })
+    // Check approval status
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_approved, role')
+      .eq('id', session.user.id)
+      .single()
 
+    if (!profile?.is_approved) {
       if (pathname.startsWith('/app')) {
-        return NextResponse.redirect(new URL('/login?error=pending_approval', request.url))
+        return NextResponse.redirect(new URL('/pending-approval', request.url))
       } else {
         return NextResponse.json(
           { error: 'Account pending approval' },
-          { status: 403 }
-        )
-      }
-    }
-
-    // Check MFA for sensitive routes
-    const mfaRequiredRoutes = ['/app', '/api/render', '/api/products']
-    const requiresMFA = mfaRequiredRoutes.some(route => pathname.startsWith(route))
-
-    if (requiresMFA && !token.mfaEnabled) {
-      logSecurityEvent({
-        event: 'mfa_required_access_attempt',
-        userId: token.sub,
-        severity: 'medium',
-        details: {
-          path: pathname,
-          ip,
-          userAgent
-        }
-      })
-
-      if (pathname.startsWith('/app')) {
-        return NextResponse.redirect(new URL('/setup-mfa', request.url))
-      } else {
-        return NextResponse.json(
-          { error: 'MFA setup required' },
           { status: 403 }
         )
       }
@@ -110,19 +62,7 @@ export async function middleware(request: NextRequest) {
     const adminRoutes = ['/app/admin']
     const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
 
-    if (isAdminRoute && token.role !== 'ADMIN') {
-      logSecurityEvent({
-        event: 'admin_access_denied',
-        userId: token.sub,
-        severity: 'high',
-        details: {
-          path: pathname,
-          ip,
-          userAgent,
-          userRole: token.role
-        }
-      })
-
+    if (isAdminRoute && profile.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }
