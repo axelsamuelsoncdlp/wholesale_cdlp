@@ -5,9 +5,14 @@ import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { createSupabaseClient } from '@/lib/supabase'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { debugSupabaseConfig } from '@/lib/debug-supabase'
 
 export default function LoginPage() {
-  const [supabase] = useState(() => createSupabaseClient())
+  const [supabase] = useState(() => {
+    // Debug environment variables
+    debugSupabaseConfig()
+    return createSupabaseClient()
+  })
   const router = useRouter()
 
   const checkUserApproval = useCallback(async (userId: string) => {

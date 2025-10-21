@@ -1,35 +1,51 @@
 import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+// Get environment variables
+function getSupabaseConfig() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!supabaseUrl) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
-}
+  if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+  }
 
-if (!supabaseAnonKey) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
-}
+  if (!supabaseAnonKey) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
+  }
 
-if (!supabaseServiceKey) {
-  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+  if (!supabaseServiceKey) {
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+  }
+
+  return { supabaseUrl, supabaseAnonKey, supabaseServiceKey }
 }
 
 // Server-side client with service role key for admin operations
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+export function getSupabaseAdmin() {
+  const { supabaseUrl, supabaseServiceKey } = getSupabaseConfig()
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 // Client-side client for user operations
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export function getSupabase() {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig()
+  return createClient(supabaseUrl, supabaseAnonKey)
+}
+
+// Legacy exports for backward compatibility
+export const supabaseAdmin = getSupabaseAdmin()
+export const supabase = getSupabase()
 
 // Server-side client for middleware (without cookies import)
 export function createSupabaseServerClient() {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig()
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get() {
@@ -47,6 +63,7 @@ export function createSupabaseServerClient() {
 
 // Client-side helper
 export function createSupabaseClient() {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig()
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
