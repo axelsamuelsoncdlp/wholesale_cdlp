@@ -1,8 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
-// Get environment variables
-function getSupabaseConfig() {
+// Get environment variables for client-side
+function getClientSupabaseConfig() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+  }
+
+  if (!supabaseAnonKey) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
+  }
+
+  return { supabaseUrl, supabaseAnonKey }
+}
+
+// Get environment variables for server-side
+function getServerSupabaseConfig() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -24,7 +40,7 @@ function getSupabaseConfig() {
 
 // Server-side client with service role key for admin operations
 export function getSupabaseAdmin() {
-  const { supabaseUrl, supabaseServiceKey } = getSupabaseConfig()
+  const { supabaseUrl, supabaseServiceKey } = getServerSupabaseConfig()
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
@@ -35,7 +51,7 @@ export function getSupabaseAdmin() {
 
 // Client-side client for user operations
 export function getSupabase() {
-  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig()
+  const { supabaseUrl, supabaseAnonKey } = getClientSupabaseConfig()
   return createClient(supabaseUrl, supabaseAnonKey)
 }
 
@@ -45,7 +61,7 @@ export const supabase = getSupabase()
 
 // Server-side client for middleware (without cookies import)
 export function createSupabaseServerClient() {
-  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig()
+  const { supabaseUrl, supabaseAnonKey } = getServerSupabaseConfig()
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get() {
@@ -63,7 +79,7 @@ export function createSupabaseServerClient() {
 
 // Client-side helper
 export function createSupabaseClient() {
-  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig()
+  const { supabaseUrl, supabaseAnonKey } = getClientSupabaseConfig()
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
