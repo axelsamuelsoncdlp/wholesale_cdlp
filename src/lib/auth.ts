@@ -67,10 +67,6 @@ export function verifyMFAToken(secret: string, token: string): boolean {
   }
 }
 
-// Email verification token
-export function generateEmailVerificationToken(): string {
-  return randomBytes(32).toString('hex')
-}
 
 // User management
 export async function createUser(email: string, hashedPassword: string, role: 'ADMIN' | 'STANDARD' = 'STANDARD') {

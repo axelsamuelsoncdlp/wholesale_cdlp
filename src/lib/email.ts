@@ -66,28 +66,6 @@ export const emailTemplates = {
     `
   }),
 
-  passwordReset: (email: string, resetToken: string) => ({
-    subject: 'Reset your password',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333;">Reset Your Password</h2>
-        <p>Hello,</p>
-        <p>You requested a password reset for your CDLP Linesheet Generator account. Click the link below to reset your password:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${appUrl}/reset-password?token=${resetToken}" 
-             style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-            Reset Password
-          </a>
-        </div>
-        <p>If you didn't request this password reset, please ignore this email and your password will remain unchanged.</p>
-        <p>This link will expire in 1 hour.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-        <p style="color: #666; font-size: 12px;">
-          CDLP Linesheet Generator
-        </p>
-      </div>
-    `
-  }),
 
   mfaSetup: (email: string) => ({
     subject: 'Complete your two-factor authentication setup',
@@ -302,10 +280,6 @@ export async function sendEmailVerification(email: string, verificationToken: st
   return sendEmail(email, template.subject, template.html)
 }
 
-export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
-  const template = emailTemplates.passwordReset(email, resetToken)
-  return sendEmail(email, template.subject, template.html)
-}
 
 export async function sendMFASetupEmail(email: string): Promise<boolean> {
   const template = emailTemplates.mfaSetup(email)
