@@ -20,11 +20,13 @@ export async function POST(request: NextRequest) {
 
   try {
     // Get user
-    const user = await db.user.findUnique({
-      where: { id: session.user.id }
-    })
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if MFA is already enabled
-    if (user.mfaEnabled) {
+    if (user.mfa_enabled) {
       return NextResponse.json(
         { error: 'MFA is already enabled for this account' },
         { status: 400 }
@@ -43,10 +45,12 @@ export async function POST(request: NextRequest) {
     const mfaSetup = await generateMFASetup(user.email)
 
     // Store the secret temporarily (will be enabled after verification)
-    await db.user.update({
-      where: { id: user.id },
-      data: { mfaSecret: mfaSetup.secret }
-    })
+    const { error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({ mfa_secret: mfaSetup.secret })
+      .eq('id', user.id)
+
+    if (updateError) throw updateError
 
     logSecurityEvent({
       event: 'mfa_setup_initiated',

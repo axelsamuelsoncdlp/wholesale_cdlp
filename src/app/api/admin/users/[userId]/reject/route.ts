@@ -21,18 +21,20 @@ export async function POST(
   const { reason } = await request.json()
 
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId }
-    })
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
-    if (user.isActive) {
+    if (user.is_active) {
       return NextResponse.json(
         { error: 'User is already approved' },
         { status: 400 }
@@ -40,9 +42,12 @@ export async function POST(
     }
 
     // Delete the user account
-    await db.user.delete({
-      where: { id: userId }
-    })
+    const { error: deleteError } = await supabaseAdmin
+      .from('users')
+      .delete()
+      .eq('id', userId)
+
+    if (deleteError) throw deleteError
 
     logSecurityEvent({
       event: 'user_rejected',

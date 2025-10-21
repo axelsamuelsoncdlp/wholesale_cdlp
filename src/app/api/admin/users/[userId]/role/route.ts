@@ -29,11 +29,13 @@ export async function POST(
   }
 
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId }
-    })
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }

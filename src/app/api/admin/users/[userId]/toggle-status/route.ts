@@ -22,11 +22,13 @@ export async function POST(
   const { isActive } = await request.json()
 
   try {
-    const user = await db.user.findUnique({
-      where: { id: userId }
-    })
+    const { data: user, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -41,16 +43,21 @@ export async function POST(
       )
     }
 
-    const updatedUser = await db.user.update({
-      where: { id: userId },
-      data: { isActive }
-    })
+    const { data: updatedUser, error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({ is_active: isActive })
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (updateError) throw updateError
 
     // If deactivating, also delete all sessions
     if (!isActive) {
-      await db.session.deleteMany({
-        where: { userId }
-      })
+      await supabaseAdmin
+        .from('sessions')
+        .delete()
+        .eq('user_id', userId)
     }
 
     logSecurityEvent({
