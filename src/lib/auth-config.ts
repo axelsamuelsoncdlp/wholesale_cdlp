@@ -1,4 +1,5 @@
 import { NextAuthOptions } from 'next-auth'
+import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { db } from '@/lib/db'
@@ -189,3 +190,6 @@ export const authOptions: NextAuthOptions = {
   },
   debug: process.env.NODE_ENV === 'development',
 }
+
+// Export the auth function for use in API routes
+export const auth = NextAuth(authOptions)
