@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth-config'
+import { getSession } from '@/lib/auth-config'
 import { db } from '@/lib/db'
 import { sendUserApprovedEmail } from '@/lib/email'
 import { logSecurityEvent } from '@/lib/security'
@@ -9,7 +8,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const session = await getServerSession(authOptions)
+  const session = await getSession()
   
   if (!session?.user?.id || session.user.role !== 'ADMIN') {
     return NextResponse.json(

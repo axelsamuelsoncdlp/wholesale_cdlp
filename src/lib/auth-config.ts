@@ -193,3 +193,9 @@ export const authOptions: NextAuthOptions = {
 
 // Export the auth function for use in API routes
 export const auth = NextAuth(authOptions)
+
+// Export a helper function to get session
+export async function getSession() {
+  const session = await auth()
+  return session
+}
