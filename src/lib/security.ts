@@ -1,6 +1,8 @@
 // Simple security utilities for CDLP Linesheet Generator
 // This is a minimal version to replace the removed security.ts
 
+import crypto from 'crypto'
+
 // HMAC validation for Shopify requests
 export function verifyShopifyHmac(query: Record<string, string | null>): boolean {
   const hmac = query.hmac
@@ -21,7 +23,6 @@ export function verifyShopifyHmac(query: Record<string, string | null>): boolean
 
   // Create HMAC
   const secret = process.env.SHOPIFY_API_SECRET!
-  const crypto = require('crypto')
   const calculatedHmac = crypto
     .createHmac('sha256', secret)
     .update(sortedParams)
@@ -55,7 +56,18 @@ export function sanitizeShopDomain(shop: string): string | null {
   return cleanShop
 }
 
+// Sanitize input to prevent XSS
+export function sanitizeInput(input: string): string {
+  if (!input) return ''
+  
+  return input
+    .replace(/[<>]/g, '') // Remove < and >
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers
+    .trim()
+}
+
 // Simple logging function
-export function logSecurityEvent(event: any): void {
+export function logSecurityEvent(event: Record<string, unknown>): void {
   console.log('[SECURITY EVENT]', event)
 }

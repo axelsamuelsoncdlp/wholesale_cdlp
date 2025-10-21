@@ -19,13 +19,13 @@ export const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABA
 export function createSupabaseServerClient() {
   return createServerClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
-      get(name: string) {
+      get() {
         return undefined // Will be handled by middleware
       },
-      set(name: string, value: string, options: any) {
+      set() {
         // Will be handled by middleware
       },
-      remove(name: string, options: any) {
+      remove() {
         // Will be handled by middleware
       },
     },

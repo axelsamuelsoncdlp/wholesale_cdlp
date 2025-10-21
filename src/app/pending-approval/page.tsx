@@ -34,7 +34,7 @@ export default function PendingApprovalPage() {
             <h3 className="text-sm font-medium text-blue-800 mb-2">What happens next?</h3>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• An admin will review your account</li>
-              <li>• You'll receive access once approved</li>
+              <li>• You&apos;ll receive access once approved</li>
               <li>• You can contact your administrator for updates</li>
             </ul>
           </div>

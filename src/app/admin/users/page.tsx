@@ -9,12 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null)
   const supabase = createSupabaseClient()
-
-  useEffect(() => {
-    checkUserAndLoadData()
-  }, [])
 
   const checkUserAndLoadData = async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -36,9 +31,12 @@ export default function AdminUsersPage() {
       return
     }
 
-    setCurrentUser(profile)
     loadUsers()
   }
+
+  useEffect(() => {
+    checkUserAndLoadData()
+  }, [checkUserAndLoadData])
 
   const loadUsers = async () => {
     try {

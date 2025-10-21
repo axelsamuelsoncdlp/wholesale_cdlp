@@ -21,7 +21,7 @@ export default function LoginPage() {
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase.auth, checkUserApproval])
 
   const checkUserApproval = async (userId: string) => {
     const { data: profile } = await supabase

@@ -30,10 +30,10 @@ export async function middleware(request: NextRequest) {
         get(name: string) {
           return request.cookies.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set() {
           // Will be handled by response
         },
-        remove(name: string, options: any) {
+        remove() {
           // Will be handled by response
         },
       },

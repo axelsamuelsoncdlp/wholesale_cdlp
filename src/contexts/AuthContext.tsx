@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [loadProfile, supabase.auth])
 
   const loadProfile = async (userId: string) => {
     try {
