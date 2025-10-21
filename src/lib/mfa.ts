@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import { generateSecret, generateTOTP, verifyTOTP } from '@noble/hashes/totp'
+import { authenticator } from 'otplib'
 import { generateMFASecret, verifyMFAToken } from './auth'
 
 export interface MFASetupResult {
@@ -56,11 +56,7 @@ function generateBackupCode(): string {
 // Verify MFA token
 export function verifyMFACode(secret: string, token: string): boolean {
   try {
-    return verifyTOTP(token, secret, {
-      timeStep: 30,
-      digits: 6,
-      window: 1 // Allow 1 time step tolerance (±30 seconds)
-    })
+    return authenticator.verify({ token, secret })
   } catch {
     return false
   }
@@ -68,10 +64,7 @@ export function verifyMFACode(secret: string, token: string): boolean {
 
 // Generate current TOTP token for testing
 export function generateCurrentTOTP(secret: string): string {
-  return generateTOTP(secret, {
-    timeStep: 30,
-    digits: 6
-  })
+  return authenticator.generate(secret)
 }
 
 // Validate backup code format

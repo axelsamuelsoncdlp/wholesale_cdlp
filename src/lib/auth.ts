@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { generateSecret, generateTOTP, verifyTOTP } from '@noble/hashes/totp'
+import { authenticator } from 'otplib'
 import { randomBytes } from 'crypto'
 import { db } from './db'
 import { logSecurityEvent } from './security'
@@ -52,23 +52,16 @@ export function enforcePasswordPolicy(password: string): { isValid: boolean; err
 
 // MFA utilities
 export function generateMFASecret(): string {
-  return generateSecret(32).toString('hex')
+  return authenticator.generateSecret()
 }
 
 export function generateMFAToken(secret: string): string {
-  return generateTOTP(secret, {
-    timeStep: 30,
-    digits: 6
-  })
+  return authenticator.generate(secret)
 }
 
 export function verifyMFAToken(secret: string, token: string): boolean {
   try {
-    return verifyTOTP(token, secret, {
-      timeStep: 30,
-      digits: 6,
-      window: 1 // Allow 1 time step tolerance
-    })
+    return authenticator.verify({ token, secret })
   } catch {
     return false
   }
