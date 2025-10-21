@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
     '/login',
     '/pending-approval',
     '/api/auth',
+    '/auth/callback',
     '/_next',
     '/favicon.ico'
   ]
@@ -102,7 +103,7 @@ export async function middleware(request: NextRequest) {
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.shopify.com",
     "style-src 'self' 'unsafe-inline' https://*.shopify.com",
     "img-src 'self' data: https: *.myshopify.com",
-    "connect-src 'self' https://*.shopify.com",
+    "connect-src 'self' https://*.shopify.com https://*.supabase.co https://*.supabase.com",
     "frame-ancestors https://*.shopify.com https://admin.shopify.com",
     "form-action 'self'",
     "base-uri 'self'",
