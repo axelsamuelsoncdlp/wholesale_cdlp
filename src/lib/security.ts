@@ -118,6 +118,7 @@ export function validateVariantId(id: string): boolean {
 export interface SecurityEvent {
   timestamp: Date
   event: string
+  userId?: string
   shop?: string
   ip?: string
   userAgent?: string
