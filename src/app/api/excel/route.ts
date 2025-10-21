@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate Excel file
-    const excelBuffer = generateExcelFromProducts(products as ShopifyProduct[])
+    const excelBuffer = await generateExcelFromProducts(products as ShopifyProduct[])
 
     // Create filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0]

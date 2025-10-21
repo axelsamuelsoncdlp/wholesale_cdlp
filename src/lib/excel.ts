@@ -1,6 +1,23 @@
 import * as XLSX from 'xlsx'
 import { ShopifyProduct } from '@/lib/shopify'
 
+// Helper function to fetch image as base64
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    
+    const arrayBuffer = await response.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString('base64')
+    const contentType = response.headers.get('content-type') || 'image/jpeg'
+    
+    return `data:${contentType};base64,${base64}`
+  } catch (error) {
+    console.error('Error fetching image:', error)
+    return null
+  }
+}
+
 export interface ExcelRow {
   Season: string
   Color: string
@@ -35,14 +52,25 @@ export interface ExcelRow {
   'Qty 7': number
 }
 
-export function generateExcelFromProducts(products: ShopifyProduct[]): Buffer {
+export async function generateExcelFromProducts(products: ShopifyProduct[]): Promise<Buffer> {
   // Convert products to Excel rows
-  const excelRows: ExcelRow[] = products.map(product => {
+  const excelRows: ExcelRow[] = []
+  
+  // Process products and fetch images
+  for (const product of products) {
     // Extract data from product
     const season = getMetafieldValue(product, 'season') || ''
     const color = getColorFromProduct(product) || ''
     const styleNumber = getMetafieldValue(product, 'style_number') || ''
-    const image = product.images.edges[0]?.node.url || ''
+    
+    // Handle image - fetch as base64 if URL exists
+    let imageData = ''
+    if (product.images.edges.length > 0) {
+      const imageUrl = product.images.edges[0].node.url
+      const base64Image = await fetchImageAsBase64(imageUrl)
+      imageData = base64Image || imageUrl // Fallback to URL if base64 fails
+    }
+    
     const name = product.title
     const wholesalePrice = getWholesalePrice(product)
     const msrpPrice = getMSRPPrice(product)
@@ -63,11 +91,11 @@ export function generateExcelFromProducts(products: ShopifyProduct[]): Buffer {
     const sizes = getSizesFromProduct(product)
     const quantities = getQuantitiesFromProduct(product)
     
-    return {
+    excelRows.push({
       Season: season,
       Color: color,
       'Style Number': styleNumber,
-      Image: image,
+      Image: imageData,
       Name: name,
       'Wholesale (USD)': wholesalePrice,
       'M.S.R.P. (USD)': msrpPrice,
@@ -95,8 +123,8 @@ export function generateExcelFromProducts(products: ShopifyProduct[]): Buffer {
       'Qty 6': quantities[5] || 0,
       'Size 7': sizes[6] || '',
       'Qty 7': quantities[6] || 0,
-    }
-  })
+    })
+  }
 
   // Create workbook and worksheet
   const workbook = XLSX.utils.book_new()
@@ -107,7 +135,7 @@ export function generateExcelFromProducts(products: ShopifyProduct[]): Buffer {
     { wch: 10 }, // Season
     { wch: 12 }, // Color
     { wch: 15 }, // Style Number
-    { wch: 20 }, // Image
+    { wch: 30 }, // Image (wider for images)
     { wch: 25 }, // Name
     { wch: 15 }, // Wholesale
     { wch: 15 }, // MSRP
