@@ -1,8 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+}
+
+if (!supabaseAnonKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
+}
+
+if (!supabaseServiceKey) {
+  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+}
 
 // Server-side client with service role key for admin operations
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -13,11 +26,11 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 // Client-side client for user operations
-export const supabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Server-side client for middleware (without cookies import)
 export function createSupabaseServerClient() {
-  return createServerClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get() {
         return undefined // Will be handled by middleware
@@ -34,7 +47,7 @@ export function createSupabaseServerClient() {
 
 // Client-side helper
 export function createSupabaseClient() {
-  return createBrowserClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
 // Logo management functions
