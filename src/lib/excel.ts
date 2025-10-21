@@ -172,7 +172,7 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           else if (contentType.includes('webp')) extension = 'webp'
           
           const imageId = workbook.addImage({
-            buffer: nodeBuffer as any,
+            buffer: nodeBuffer as Buffer,
             extension: extension,
           })
           
