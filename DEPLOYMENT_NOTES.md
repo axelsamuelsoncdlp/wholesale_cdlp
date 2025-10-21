@@ -12,3 +12,4 @@ All enterprise security features are now implemented and ready for production.
 3. Test security features
 4. Create Shopify App in Partners Dashboard# Deployment trigger - Tue Oct 21 10:58:54 CEST 2025
 # Transaction Pooler deployment - Tue Oct 21 11:01:11 CEST 2025
+# Testing deployment with all env vars - Tue Oct 21 11:03:56 CEST 2025
