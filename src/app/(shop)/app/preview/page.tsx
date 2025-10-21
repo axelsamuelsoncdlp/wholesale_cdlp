@@ -78,6 +78,39 @@ export default function PreviewPage() {
     }
   }
 
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await fetch('/api/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: selectedProducts,
+          config: config,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Excel file')
+      }
+
+      // Create blob and download
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `linesheet-${config.season}-${Date.now()}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error generating Excel:', error)
+      alert('Failed to generate Excel file. Please try again.')
+    }
+  }
+
   // Auto-generate preview when component mounts
   useEffect(() => {
     if (selectedProducts.length > 0) {
@@ -125,6 +158,15 @@ export default function PreviewPage() {
               Back to Layout
             </Button>
           </Link>
+          <Button 
+            onClick={handleDownloadExcel}
+            disabled={selectedProducts.length === 0}
+            variant="outline"
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Download Excel
+          </Button>
           <Button 
             onClick={handleDownload}
             disabled={!previewUrl}

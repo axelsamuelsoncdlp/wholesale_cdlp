@@ -42,6 +42,39 @@ export default function PreviewHtmlPage() {
     }
   }
 
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await fetch('/api/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: selectedProducts,
+          config: config,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Excel file')
+      }
+
+      // Create blob and download
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `linesheet-${config.season}-${Date.now()}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error generating Excel:', error)
+      alert('Failed to generate Excel file. Please try again.')
+    }
+  }
+
   const getProductPrice = (product: { variants: { edges: Array<{ node: { price: string } }> } }): string => {
     if (product.variants.edges.length > 0) {
       const variant = product.variants.edges[0].node
@@ -128,6 +161,14 @@ export default function PreviewHtmlPage() {
               Back to Layout
             </Button>
           </Link>
+          <Button 
+            onClick={handleDownloadExcel}
+            variant="outline"
+            className="gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Download Excel
+          </Button>
           <Button 
             onClick={handleDownload}
             className="gap-2"
