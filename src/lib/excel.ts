@@ -2,6 +2,11 @@ import ExcelJS from 'exceljs'
 import { ShopifyProduct } from '@/lib/shopify'
 import fetch from 'node-fetch'
 
+// Helper function to convert ArrayBufferLike to Node.js Buffer
+function toNodeBuffer(buffer: ArrayBufferLike): Buffer {
+  return Buffer.from(buffer)
+}
+
 export interface ExcelRow {
   Season: string
   Color: string
@@ -162,7 +167,7 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           console.log('Image downloaded, size:', buffer.length, 'bytes')
           
           // Convert to Node.js Buffer for exceljs compatibility
-          const nodeBuffer = Buffer.from(buffer)
+          const nodeBuffer = toNodeBuffer(buffer)
           
           // Determine image extension from content type or URL
           const contentType = response.headers.get('content-type') || ''
@@ -172,7 +177,7 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           else if (contentType.includes('webp')) extension = 'webp'
           
           const imageId = workbook.addImage({
-            buffer: nodeBuffer as Buffer,
+            buffer: nodeBuffer,
             extension: extension,
           })
           
