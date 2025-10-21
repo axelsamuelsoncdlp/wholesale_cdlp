@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
     // Test database connection
+    const supabaseAdmin = getSupabaseAdmin()
     const { error } = await supabaseAdmin
       .from('users')
       .select('count')

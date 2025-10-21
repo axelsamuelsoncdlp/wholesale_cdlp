@@ -55,10 +55,6 @@ export function getSupabase() {
   return createClient(supabaseUrl, supabaseAnonKey)
 }
 
-// Legacy exports for backward compatibility
-export const supabaseAdmin = getSupabaseAdmin()
-export const supabase = getSupabase()
-
 // Server-side client for middleware (without cookies import)
 export function createSupabaseServerClient() {
   const { supabaseUrl, supabaseAnonKey } = getServerSupabaseConfig()
@@ -86,6 +82,7 @@ export function createSupabaseClient() {
 // Logo management functions
 export async function saveLogo(shop: string, logoUrl: string) {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { data, error } = await supabaseAdmin
       .from('shops')
       .upsert({
@@ -109,6 +106,7 @@ export async function saveLogo(shop: string, logoUrl: string) {
 
 export async function getLogo(shop: string) {
   try {
+    const supabaseAdmin = getSupabaseAdmin()
     const { data, error } = await supabaseAdmin
       .from('shops')
       .select('logo_url')

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 const SHOPIFY_API_VERSION = '2024-10'
 
@@ -270,6 +270,7 @@ export async function exchangeCodeForToken(
 
 // Database helpers
 export async function saveShop(shop: string, accessToken: string) {
+  const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin
     .from('shops')
     .upsert({
@@ -286,6 +287,7 @@ export async function saveShop(shop: string, accessToken: string) {
 }
 
 export async function getShop(shop: string) {
+  const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin
     .from('shops')
     .select('*')
