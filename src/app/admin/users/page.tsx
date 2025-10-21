@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Users, 
   Shield, 
-  Mail, 
   Calendar, 
   MoreHorizontal,
   Edit,
   Trash2,
   UserCheck,
-  UserX
+  UserX,
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
 
 interface User {
