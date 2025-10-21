@@ -11,6 +11,22 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createSupabaseClient()
 
+  const loadUsers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setUsers(data || [])
+    } catch (error) {
+      console.error('Error loading users:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase])
+
   const checkUserAndLoadData = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
     
@@ -37,22 +53,6 @@ export default function AdminUsersPage() {
   useEffect(() => {
     checkUserAndLoadData()
   }, [checkUserAndLoadData])
-
-  const loadUsers = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setUsers(data || [])
-    } catch (error) {
-      console.error('Error loading users:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [supabase])
 
   const approveUser = async (userId: string) => {
     try {

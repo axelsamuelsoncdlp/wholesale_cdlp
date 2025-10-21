@@ -3,14 +3,14 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { createSupabaseClient } from '@/lib/supabase'
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [supabase] = useState(() => createSupabaseClient())
   const router = useRouter()
 
-  const checkUserApproval = async (userId: string) => {
+  const checkUserApproval = useCallback(async (userId: string) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_approved, role')
@@ -22,7 +22,7 @@ export default function LoginPage() {
     } else {
       router.push('/pending-approval')
     }
-  }
+  }, [supabase, router])
 
   useEffect(() => {
     const {
