@@ -109,24 +109,56 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create profile
+    // Wait a moment for the trigger to create the profile automatically
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // Update the automatically created profile (trigger creates it with STANDARD role and is_approved=false)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert({
-        id: authData.user.id,
+      .update({
         email: email,
         role: role,
         is_approved: isApproved,
       })
+      .eq('id', authData.user.id)
 
     if (profileError) {
-      // If profile creation fails, delete the auth user
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-      console.error('Error creating profile:', profileError)
-      return NextResponse.json(
-        { error: 'Failed to create profile', details: profileError.message },
-        { status: 500 }
-      )
+      // If profile update fails, check if profile exists (maybe trigger didn't run)
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('id', authData.user.id)
+        .single()
+
+      if (!existingProfile) {
+        // Profile doesn't exist, try to create it manually
+        const { error: insertError } = await supabaseAdmin
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            email: email,
+            role: role,
+            is_approved: isApproved,
+          })
+
+        if (insertError) {
+          // If profile creation also fails, delete the auth user
+          await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+          console.error('Error creating profile:', insertError)
+          return NextResponse.json(
+            { error: 'Failed to create profile', details: insertError.message },
+            { status: 500 }
+          )
+        }
+      } else {
+        // Profile exists but update failed - this is unexpected
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+        console.error('Error updating profile:', profileError)
+        return NextResponse.json(
+          { error: 'Failed to update profile', details: profileError.message },
+          { status: 500 }
+        )
+      }
     }
 
     return NextResponse.json({
