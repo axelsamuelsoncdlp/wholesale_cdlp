@@ -2,10 +2,6 @@ import ExcelJS from 'exceljs'
 import { ShopifyProduct } from '@/lib/shopify'
 import fetch from 'node-fetch'
 
-// Helper function to convert ArrayBufferLike to Node.js Buffer
-function toNodeBuffer(buffer: ArrayBufferLike): Buffer {
-  return Buffer.from(buffer)
-}
 
 export interface ExcelRow {
   Season: string
@@ -41,7 +37,7 @@ export interface ExcelRow {
   'Qty 7': number
 }
 
-export async function generateExcelFromProducts(products: ShopifyProduct[]): Promise<Buffer> {
+export async function generateExcelFromProducts(products: ShopifyProduct[]): Promise<ArrayBuffer> {
   console.log('Starting Excel generation for', products.length, 'products')
   
   const workbook = new ExcelJS.Workbook()
@@ -166,18 +162,22 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
           const buffer = await response.buffer()
           console.log('Image downloaded, size:', buffer.length, 'bytes')
           
-          // Convert to Node.js Buffer for exceljs compatibility
-          const nodeBuffer = toNodeBuffer(buffer)
+          // Convert to Node.js Buffer for exceljs compatibility using Uint8Array
+          const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+          const nodeBuffer = Buffer.from(uint8Array)
           
           // Determine image extension from content type or URL
           const contentType = response.headers.get('content-type') || ''
-          let extension = 'jpeg'
+          let extension: 'jpeg' | 'png' | 'gif' = 'jpeg'
           if (contentType.includes('png')) extension = 'png'
           else if (contentType.includes('gif')) extension = 'gif'
-          else if (contentType.includes('webp')) extension = 'webp'
+          // webp is not supported by exceljs, use jpeg as fallback
           
+          // Type assertion needed due to Buffer type incompatibility between node-fetch and exceljs
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const imageId = workbook.addImage({
-            buffer: nodeBuffer,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            buffer: nodeBuffer as any,
             extension: extension,
           })
           
@@ -249,9 +249,10 @@ export async function generateExcelFromProducts(products: ShopifyProduct[]): Pro
     console.log('Generating Excel buffer...')
     // Generate buffer
     const buffer = await workbook.xlsx.writeBuffer()
-    console.log('Excel buffer generated successfully, size:', buffer.length, 'bytes')
+    console.log('Excel buffer generated successfully')
     
-    return buffer
+    // Type assertion needed due to exceljs return type
+    return buffer as unknown as ArrayBuffer
   } catch (error) {
     console.error('Error creating Excel workbook:', error)
     throw new Error(`Failed to create Excel workbook: ${error instanceof Error ? error.message : 'Unknown error'}`)

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Generate Excel file
     const excelBuffer = await generateExcelFromProducts(products as ShopifyProduct[])
     
-    console.log('Excel generation completed, buffer size:', excelBuffer.length)
+    console.log('Excel generation completed, buffer size:', excelBuffer.byteLength)
 
     // Create filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0]
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': excelBuffer.length.toString(),
+        'Content-Length': excelBuffer.byteLength.toString(),
       },
     })
 

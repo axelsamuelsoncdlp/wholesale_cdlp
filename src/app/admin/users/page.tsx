@@ -5,10 +5,21 @@ import { createSupabaseClient } from '@/lib/supabase'
 import { Profile } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createSuccess, setCreateSuccess] = useState(false)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    role: 'STANDARD' as 'ADMIN' | 'STANDARD',
+    isApproved: true,
+  })
   const supabase = createSupabaseClient()
 
   const loadUsers = useCallback(async () => {
@@ -89,6 +100,57 @@ export default function AdminUsersPage() {
     window.location.href = '/login'
   }
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreating(true)
+    setCreateError(null)
+    setCreateSuccess(false)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setCreateError('You must be logged in to create users')
+        setCreating(false)
+        return
+      }
+
+      const response = await fetch('/api/admin/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create user')
+      }
+
+      setCreateSuccess(true)
+      setFormData({
+        email: '',
+        password: '',
+        role: 'STANDARD',
+        isApproved: true,
+      })
+      setShowCreateForm(false)
+      
+      // Reload users list
+      loadUsers()
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setCreateSuccess(false), 3000)
+    } catch (error) {
+      console.error('Error creating user:', error)
+      setCreateError(error instanceof Error ? error.message : 'Failed to create user')
+    } finally {
+      setCreating(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -108,10 +170,127 @@ export default function AdminUsersPage() {
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-            <Button onClick={signOut} variant="outline">
-              Sign Out
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {showCreateForm ? 'Cancel' : 'Create New User'}
+              </Button>
+              <Button onClick={signOut} variant="outline">
+                Sign Out
+              </Button>
+            </div>
           </div>
+
+          {/* Success Message */}
+          {createSuccess && (
+            <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+              User created successfully!
+            </div>
+          )}
+
+          {/* Create User Form */}
+          {showCreateForm && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Create New User</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateUser} className="space-y-4">
+                  {createError && (
+                    <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                      {createError}
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="user@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                      Password * (min 8 characters)
+                    </label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Enter password"
+                      required
+                      minLength={8}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                      Role *
+                    </label>
+                    <select
+                      id="role"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'STANDARD' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="STANDARD">Standard</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      id="isApproved"
+                      type="checkbox"
+                      checked={formData.isApproved}
+                      onChange={(e) => setFormData({ ...formData, isApproved: e.target.checked })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="isApproved" className="ml-2 block text-sm text-gray-700">
+                      Approve user immediately
+                    </label>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button 
+                      type="submit" 
+                      disabled={creating}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {creating ? 'Creating...' : 'Create User'}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      onClick={() => {
+                        setShowCreateForm(false)
+                        setCreateError(null)
+                        setFormData({
+                          email: '',
+                          password: '',
+                          role: 'STANDARD',
+                          isApproved: true,
+                        })
+                      }}
+                      variant="outline"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Pending Approvals */}
           <Card className="mb-8">
